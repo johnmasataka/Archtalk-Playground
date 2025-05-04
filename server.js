@@ -58,6 +58,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from the React build directory
+app.use(express.static(path.join(__dirname, 'build')));
+
 // 检查环境变量
 console.log('Checking environment variables...');
 if (!process.env.OPENAI_API_KEY) {
@@ -210,8 +213,12 @@ app.post('/api/reset-building', (req, res) => {
     res.json(currentBuildingData);
 });
 
-const PORT = process.env.PORT || 4000;
+// Handle React routing - return index.html for all other routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+const PORT = process.env.PORT || 4002;
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log('📝 Waiting for ChatGPT API calls...\n');
+    console.log(`Server is running on port ${PORT}`);
 }); 

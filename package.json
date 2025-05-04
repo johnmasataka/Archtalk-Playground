@@ -42,7 +42,7 @@
     "serve": "^14.2.1"
   },
   "scripts": {
-    "start": "serve -s build",
+    "start": "node server.js",
     "server": "node server.js",
     "dev": "concurrently \"npm run server\" \"npm run start\"",
     "build": "react-scripts build",
