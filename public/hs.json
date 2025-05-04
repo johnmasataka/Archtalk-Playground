@@ -1,0 +1,450 @@
+{
+  "building": {
+    "name": "SimpleHouse",
+    "floors": [
+      {
+        "name": "GroundFloor",
+        "level": 0,
+        "height": 2800,
+        "material": {
+          "color": "#cccccc",
+          "opacity": 0.75
+        },
+        "rooms": [
+          {
+            "name": "LivingRoom",
+            "footprint": [
+              [0, 0],
+              [10000, 0],
+              [10000, 8000],
+              [0, 8000]
+            ],
+            "walls": [
+              {
+                "start": [0, 0],
+                "end": [10000, 0],
+                "thickness": 150, 
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              },
+              {
+                "start": [10000, 0],
+                "end": [10000, 8000],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                },
+                "door": {
+                  "position": 2000,
+                  "width": 2500,
+                  "height": 2100,
+                  "depth": 155,
+                  "material": {
+                    "color": "#6fa7d1",
+                    "opacity": 0.25
+                  }
+                }
+              },
+              {
+                "start": [10000, 8000],
+                "end": [0, 8000],
+                "thickness": 150, 
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }, 
+                "door": {
+                  "position": 1000,
+                  "width": 900,
+                  "height": 2100, 
+                  "depth": 155,
+                  "material": {
+                    "color": "#8b4513",
+                    "opacity": 0.75
+                  }
+                }
+              },
+              {
+                "start": [0, 8000],
+                "end": [0, 0],
+                "thickness": 150, 
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                },
+                "door": {
+                  "position": 1000,
+                  "width": 800,
+                  "height": 2100,
+                  "depth": 155,
+                  "material": {
+                    "color": "#8b4513",
+                    "opacity": 0.75
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "DiningRoom",
+            "footprint": [
+              [0, 8000],
+              [3000, 8000],
+              [3000, 10000],
+              [0, 10000]
+            ],
+            "walls": [
+              {
+                "start": [0, 8000],
+                "end": [3000, 8000],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                },
+                "door": {
+                  "position": 1000,
+                  "width": 800,
+                  "height": 2100,
+                  "depth": 155,
+                  "material": {
+                    "color": "#8b4513",
+                    "opacity": 0.75
+                  }
+                }
+              },
+              {
+                "start": [3000, 8000],
+                "end": [3000, 10000],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              },
+              {
+                "start": [3000, 10000],
+                "end": [0, 10000],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              },
+              {
+                "start": [0, 10000],
+                "end": [0, 8000],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              }
+            ]
+          },
+          {
+            "name": "Engawa",
+            "footprint": [
+              [0, -1200],
+              [13000, -1200],
+              [13000, 8000],
+              [0, 8000]
+            ],
+            "walls": [],
+            "material": {
+              "color": "#8b4513",
+              "opacity": 0.5
+            }
+          }
+        ]
+      },
+      {
+        "name": "FirstFloor",
+        "level": 1,
+        "height": 2800,
+        "material": {
+          "color": "#cccccc",
+          "opacity": 0.75
+        },
+        "rooms": [
+          {
+            "name": "Bedroom 1",
+            "footprint": [
+              [0, 0],
+              [6000, 0],
+              [6000, 8800],
+              [0, 8800]
+            ],
+            "walls": [
+              {
+                "start": [0, 0],
+                "end": [6000, 0],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              },
+              {
+                "start": [6000, 0],
+                "end": [6000, 8800],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              },
+              {
+                "start": [6000, 8800],
+                "end": [0, 8800],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              },
+              {
+                "start": [0, 8800],
+                "end": [0, 0],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              }
+            ]
+          },
+          {
+            "name": "Bedroom 2",
+            "footprint": [
+              [6000, 0],
+              [11000, 0],
+              [11000, 8800],
+              [6000, 8800]
+            ],
+            "walls": [
+              {
+                "start": [6000, 0],
+                "end": [11000, 0],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              },
+              {
+                "start": [11000, 0],
+                "end": [11000, 8800],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                },
+                "window": {
+                  "position": 1000,
+                  "verticalPosition": 1000,
+                  "width": 1500,
+                  "height": 1200,
+                  "depth": 155,
+                  "material": {
+                    "color": "#6fa7d1",
+                    "opacity": 0.25
+                  }
+                },
+                "window2": {
+                  "position": 2800,
+                  "verticalPosition": 1000,
+                  "width": 1500,
+                  "height": 1200,
+                  "depth": 155,
+                  "material": {
+                    "color": "#6fa7d1",
+                    "opacity": 0.25
+                  }
+                }
+              },
+              {
+                "start": [11000, 8800],
+                "end": [6000, 8800],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              },
+              {
+                "start": [6000, 8800],
+                "end": [6000, 0],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              }
+            ],
+            "window": {
+              "position": 1000,
+              "verticalPosition": 1000,
+              "width": 1500,
+              "height": 1200,
+              "depth": 155,
+              "material": {
+                "color": "#6fa7d1",
+                "opacity": 0.25
+              }
+            },
+            "window2": {
+              "position": 2800,
+              "verticalPosition": 1000,
+              "width": 1500,
+              "height": 1200,
+              "depth": 155,
+              "material": {
+                "color": "#6fa7d1",
+                "opacity": 0.25
+              }
+            }
+          },
+          {
+            "name": "Small Balcony",
+            "footprint": [
+              [-300, 8300],
+              [3300, 8300],
+              [3300, 10300],
+              [-300, 10300]
+            ],
+            "walls": [],
+            "material": {
+              "color": "#8b4513",
+              "opacity": 0.25
+            }
+          }
+        ]
+      },
+      {
+        "name": "SecondFloor",
+        "level": 2,
+        "height": 2800,
+        "material": {
+          "color": "#cccccc",
+          "opacity": 0.75
+        },
+        "rooms": [
+          {
+            "name": "Bedroom 3",
+            "footprint": [
+              [0, 0],
+              [8000, 0],
+              [8000, 10000],
+              [0, 10000]
+            ],
+            "walls": [
+              {
+                "start": [0, 0],
+                "end": [8000, 0],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              },
+              {
+                "start": [8000, 0],
+                "end": [8000, 10000],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                },
+                "door": {
+                  "position": 2000,
+                  "width": 2500,
+                  "height": 2100,
+                  "depth": 155,
+                  "material": {
+                    "color": "#6fa7d1",
+                    "opacity": 0.25
+                  }
+                }
+              },
+              {
+                "start": [8000, 10000],
+                "end": [0, 10000],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                },
+                "window": {
+                  "position": 1000,
+                  "verticalPosition": 1000,
+                  "width": 1500,
+                  "height": 1200,
+                  "depth": 155,
+                  "material": {
+                    "color": "#6fa7d1",
+                    "opacity": 0.25
+                  }
+                },
+                "window2": {
+                  "position": 2800,
+                  "verticalPosition": 1000,
+                  "width": 1500,
+                  "height": 1200,
+                  "depth": 155,
+                  "material": {
+                    "color": "#6fa7d1",
+                    "opacity": 0.25
+                  }
+                }
+              },
+              {
+                "start": [0, 10000],
+                "end": [0, 0],
+                "thickness": 150,
+                "material": {
+                  "color": "#e8e8e8",
+                  "opacity": 0.5
+                }
+              }
+            ]
+          },
+          {
+            "name": "Terrace",
+            "footprint": [
+              [0, 0],
+              [13000, 0],
+              [13000, 10800],
+              [0, 10800]
+            ],
+            "walls": [],
+            "material": {
+              "color": "#8b4513",
+              "opacity": 0.5
+            }
+          }
+        ],
+        "roof": {
+          "type": "gabled",
+          "height": 2500,
+          "overhang": 800,
+          "pitch": 30,
+          "thickness": 50,
+          "material": {
+            "color": "#8b4513",
+            "opacity": 0.75
+          },
+          "footprint": [
+            [0, -1200],
+            [19200000, -1200],
+            [19200000, 11200],
+            [0, 11200]
+          ]
+        }
+      }
+    ]
+  }
+}
