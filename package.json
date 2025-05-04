@@ -18,9 +18,7 @@
     "antd": "^4.24.14",
     "autoprefixer": "^10.4.17",
     "axios": "^1.6.7",
-    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.18.2",
     "firebase": "^10.8.0",
     "ifcjs": "^1.1.7",
     "openai": "^4.28.0",
@@ -32,7 +30,7 @@
     "react-scripts": "5.0.1",
     "socket.io-client": "^4.7.4",
     "tailwindcss": "^3.4.1",
-    "three": "^0.161.0",
+    "three": "^0.149.0",
     "three-csg-ts": "^3.2.0",
     "valtio": "^2.1.4",
     "web-ifc": "^0.0.68",
@@ -41,9 +39,7 @@
     "zustand": "^4.5.0"
   },
   "scripts": {
-    "start": "set PORT=4002 && react-scripts start",
-    "server": "node server.js",
-    "dev": "concurrently \"npm run server\" \"npm run start\"",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
