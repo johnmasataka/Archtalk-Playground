@@ -38,11 +38,10 @@
     "web-ifc": "^0.0.68",
     "web-ifc-three": "^0.0.126",
     "web-vitals": "^2.1.4",
-    "zustand": "^4.5.0",
-    "serve": "^14.2.1"
+    "zustand": "^4.5.0"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "set PORT=4002 && react-scripts start",
     "server": "node server.js",
     "dev": "concurrently \"npm run server\" \"npm run start\"",
     "build": "react-scripts build",
