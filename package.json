@@ -10,7 +10,7 @@
     "@heroicons/react": "^2.1.1",
     "@mui/material": "^5.15.11",
     "@react-three/drei": "^9.1.2",
-    "@react-three/fiber": "^9.1.2",
+    "@react-three/fiber": "^8.15.16",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -38,10 +38,11 @@
     "web-ifc": "^0.0.68",
     "web-ifc-three": "^0.0.126",
     "web-vitals": "^2.1.4",
-    "zustand": "^4.5.0"
+    "zustand": "^4.5.0",
+    "serve": "^14.2.1"
   },
   "scripts": {
-    "start": "set PORT=4002 && react-scripts start",
+    "start": "serve -s build",
     "server": "node server.js",
     "dev": "concurrently \"npm run server\" \"npm run start\"",
     "build": "react-scripts build",
