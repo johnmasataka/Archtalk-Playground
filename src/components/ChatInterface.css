@@ -436,37 +436,73 @@
   background-color: var(--system-message-color);
   padding: var(--spacing-md);
   border-radius: var(--border-radius);
+  margin-bottom: 2rem;
+}
+
+.help-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+
+.help-section h3 {
+  font-size: 1.2rem;
+  margin: 1rem 0;
+  color: var(--primary-color);
+}
+
+.help-section h4 {
+  font-size: 1.1rem;
+  margin: 1rem 0;
+  color: var(--primary-color);
 }
 
 .help-section p {
-  margin: 0 0 var(--spacing-sm) 0;
+  margin-bottom: 1rem;
   line-height: 1.5;
 }
 
-.help-section ul, .help-section ol {
-  margin: 0 0 var(--spacing-sm) 0;
-  padding-left: var(--spacing-lg);
-}
-
-.help-section li {
-  margin-bottom: var(--spacing-xs);
-  line-height: 1.4;
-}
-
 .help-section blockquote {
-  margin: var(--spacing-sm) 0;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background-color: rgba(0, 0, 0, 0.05);
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: var(--background-color);
   border-left: 4px solid var(--primary-color);
-  border-radius: var(--border-radius);
 }
 
-.help-section blockquote ul {
-  margin: var(--spacing-xs) 0 0 0;
+/* Numbered list styles */
+.help-section .numbered-list {
+  list-style-type: decimal;
+  padding-left: 2rem;
+  margin: 1rem 0;
+}
+
+.help-section .numbered-list li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+/* Dash list styles */
+.help-section .dash-list {
+  list-style-type: none;
+  padding-left: 2rem;
+  margin: 1rem 0;
+}
+
+.help-section .dash-list li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  position: relative;
+}
+
+.help-section .dash-list li::before {
+  content: "-";
+  position: absolute;
+  left: -1rem;
+  color: var(--text-color);
 }
 
 .help-section strong {
-  color: var(--text-color);
+  color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -487,4 +523,36 @@
 
 .help-close-button:hover {
   background-color: var(--primary-color-dark, #0056b3);
+}
+
+.language-buttons {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 8px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.language-button {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  text-align: center;
+}
+
+.language-button:hover {
+  background-color: #f0f0f0;
+}
+
+.language-button.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
 } 

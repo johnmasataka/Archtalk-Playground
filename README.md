@@ -8,8 +8,8 @@ The application consists of several main components:
 - 3D Viewport: The main area where the model is displayed
 - Left Panel: Contains various control buttons and tools
 - Right Panel: Building Modification and Generation
-- Statistics Window: Shows building information in the top-left corner
-- Object Info Window: Displays selected object details in the top-right corner
+- Statistics Window: Shows building information in the top-left corner of 3D Viewport
+- Object Info Window: Displays selected object details in the top-right corner of 3D Viewport
 
 ## View Controls
 ### View Modes
@@ -21,7 +21,7 @@ The application consists of several main components:
 - **Orbit**: Right-click and drag to rotate the view
 - **Pan**: Middle-click and drag to move the view
 - **Zoom**: Scroll wheel to zoom in/out
-- **Shift + Right-click**: Pan the view
+- **Ctrl+ Right-click**: Pan the view
 
 ## Tools and Features
 
