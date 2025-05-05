@@ -5,95 +5,95 @@ import ViewCube from './ViewCube';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 
 function LeftPanel() {
-  const [activeView, setActiveView] = useState('perspective'); // 默认视角为透视模式
+  const [activeView, setActiveView] = useState('perspective'); // Default view is perspective mode
   const [isClippingPlaneActive, setIsClippingPlaneActive] = useState(false);
   const [isPlaneSelected, setIsPlaneSelected] = useState(false);
-  const [activeOperation, setActiveOperation] = useState('translate'); // 默认操作为移动
+  const [activeOperation, setActiveOperation] = useState('translate'); // Default operation is translate
   const [isObjectSelected, setIsObjectSelected] = useState(false);
-  const [isRoomLabelsVisible, setIsRoomLabelsVisible] = useState(false); // 用于控制room标签的显示状态
-  const [isOutlineVisible, setIsOutlineVisible] = useState(true); // 用于控制对象轮廓的显示状态，默认显示
-  const [isGridMeshVisible, setIsGridMeshVisible] = useState(true); // 网格默认可见
+  const [isRoomLabelsVisible, setIsRoomLabelsVisible] = useState(false); // Used to control the display state of room labels
+  const [isOutlineVisible, setIsOutlineVisible] = useState(true); // Used to control the display state of object outlines, default display
+  const [isGridMeshVisible, setIsGridMeshVisible] = useState(true); // Grid default visible
 
-  // 处理Isometric视角按钮点击
+  // Handle Isometric view button click
   const handleIsometricClick = () => {
     setActiveView('isometric');
-    // 发送事件通知BuildingModel组件切换到等距视图
+    // Send event notification to BuildingModel component to switch to isometric view
     window.dispatchEvent(new CustomEvent('changeViewMode', { 
       detail: { mode: 'isometric' } 
     }));
   };
 
-  // 处理Perspective视角按钮点击
+  // Handle Perspective view button click
   const handlePerspectiveClick = () => {
     setActiveView('perspective');
-    // 发送事件通知BuildingModel组件切换到透视视图
+    // Send event notification to BuildingModel component to switch to perspective view
     window.dispatchEvent(new CustomEvent('changeViewMode', { 
       detail: { mode: 'perspective' } 
     }));
   };
 
-  // 处理Room按钮点击
+  // Handle Room button click
   const handleRoomClick = () => {
     const newState = !isRoomLabelsVisible;
     setIsRoomLabelsVisible(newState);
-    // 发送事件通知BuildingModel组件显示或隐藏room标签
+    // Send event notification to BuildingModel component to display or hide room labels
     window.dispatchEvent(new CustomEvent('toggleRoomLabels', { 
       detail: { visible: newState } 
     }));
   };
 
-  // 处理Outline按钮点击
+  // Handle Outline button click
   const handleOutlineClick = () => {
     const newState = !isOutlineVisible;
     setIsOutlineVisible(newState);
-    // 发送事件通知BuildingModel组件显示或隐藏对象轮廓
+    // Send event notification to BuildingModel component to display or hide object outlines
     window.dispatchEvent(new CustomEvent('toggleOutlines', { 
       detail: { visible: newState } 
     }));
   };
 
-  // 处理裁剪平面按钮点击
+  // Handle Clip Plane button click
   const handleClipPlaneClick = () => {
     setIsClippingPlaneActive(!isClippingPlaneActive);
     if (!isClippingPlaneActive) {
-      // 通知 BuildingModel 组件创建裁切平面
+      // Send event notification to BuildingModel component to create clipping plane
       window.dispatchEvent(new CustomEvent('createClippingPlane'));
     } else {
-      // 通知 BuildingModel 组件移除裁切平面
+      // Send event notification to BuildingModel component to remove clipping plane
       window.dispatchEvent(new CustomEvent('removeClippingPlane'));
     }
   };
 
-  // 处理裁剪平面操作按钮点击
+  // Handle Clip Plane operation button click
   const handleClipPlaneOperationClick = (operation) => {
     if (isClippingPlaneActive) {
-      // 通知 BuildingModel 组件切换操作模式
+      // Send event notification to BuildingModel component to switch operation mode
       window.dispatchEvent(new CustomEvent('changeClippingPlaneOperation', { 
         detail: { operation } 
       }));
     }
   };
 
-  // 处理对象变换操作按钮点击
+  // Handle Object transformation operation button click
   const handleObjectOperationClick = (operation) => {
     setActiveOperation(operation);
-    // 通知 ObjectTransformer 组件切换操作模式
+    // Send event notification to ObjectTransformer component to switch operation mode
     window.dispatchEvent(new CustomEvent('changeObjectOperation', { 
       detail: { operation } 
     }));
   };
 
-  // 处理导出模型为GLTF格式
+  // Handle export model as GLTF format
   const handleExportClick = (binary) => {
-    // 创建GLTFExporter实例
+    // Create GLTFExporter instance
     const exporter = new GLTFExporter();
     
-    // 导出场景
+    // Export scene
     if (window.scene) {
       exporter.parse(
         window.scene,
         function (result) {
-          // 根据binary选项的不同，result可能是ArrayBuffer或对象
+          // Depending on the binary option, result may be an ArrayBuffer or an object
           let blob;
           let filename;
           
@@ -105,22 +105,22 @@ function LeftPanel() {
             filename = 'building-model.gltf';
           }
           
-          // 创建下载链接
+          // Create download link
           const link = document.createElement('a');
           link.style.display = 'none';
           document.body.appendChild(link);
           
-          // 创建下载URL
+          // Create download URL
           const url = URL.createObjectURL(blob);
           link.href = url;
           
-          // 设置文件名
+          // Set file name
           link.download = filename;
           
-          // 触发点击下载
+          // Trigger download
           link.click();
           
-          // 清理
+          // Clean up
           setTimeout(() => {
             URL.revokeObjectURL(url);
             document.body.removeChild(link);
@@ -129,29 +129,29 @@ function LeftPanel() {
         function (error) {
           console.error('An error occurred during export:', error);
         },
-        { binary: binary } // 根据选择的格式进行导出
+        { binary: binary } // Export based on the selected format
       );
     } else {
       console.error('Scene not available for export');
     }
   };
 
-  // 处理键盘事件
+  // Handle keyboard events
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
       if (isPlaneSelected) {
         setIsPlaneSelected(false);
-        // 通知 BuildingModel 组件取消选择裁切平面
+        // Send event notification to BuildingModel component to deselect clipping plane
         window.dispatchEvent(new CustomEvent('deselectClippingPlane'));
       } else if (isClippingPlaneActive) {
         setIsClippingPlaneActive(false);
-        // 通知 BuildingModel 组件移除裁切平面
+        // Send event notification to BuildingModel component to remove clipping plane
         window.dispatchEvent(new CustomEvent('removeClippingPlane'));
       }
     }
   };
 
-  // 添加键盘事件监听
+  // Add keyboard event listener
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -159,7 +159,7 @@ function LeftPanel() {
     };
   }, [isClippingPlaneActive, isPlaneSelected]);
 
-  // 监听裁切平面选择状态变化
+  // Listen for clipping plane selection status changes
   useEffect(() => {
     const handlePlaneSelected = (e) => {
       setIsPlaneSelected(e.detail.selected);
@@ -171,7 +171,7 @@ function LeftPanel() {
     };
   }, []);
 
-  // 监听对象选择状态变化
+  // Listen for object selection status changes
   useEffect(() => {
     const handleObjectSelected = (e) => {
       setIsObjectSelected(e.detail.selected);
@@ -183,24 +183,24 @@ function LeftPanel() {
     };
   }, []);
 
-  // 处理网格按钮点击
+  // Handle Mesh button click
   const handleMeshClick = () => {
     const newState = !isGridMeshVisible;
     setIsGridMeshVisible(newState);
-    // 发送事件通知BuildingModel组件显示或隐藏地面网格
+    // Send event notification to BuildingModel component to display or hide ground mesh
     window.dispatchEvent(new CustomEvent('toggleGridMesh', { 
       detail: { visible: newState } 
     }));
   };
 
-  // 处理几何体拖拽开始
+  // Handle Geometry drag start
   const handleGeometryDragStart = (e, geometryType) => {
     e.dataTransfer.setData('geometryType', geometryType);
   };
 
-  // 处理几何体按钮点击
+  // Handle Geometry button click
   const handleGeometryClick = (geometryType) => {
-    // 通知 BuildingModel 组件创建几何体
+    // Send event notification to BuildingModel component to create geometry
     window.dispatchEvent(new CustomEvent('createGeometry', { 
       detail: { type: geometryType } 
     }));
@@ -208,7 +208,7 @@ function LeftPanel() {
 
   return (
     <div className="left-panel">
-      {/* 第一个区域：视角切换 */}
+      {/* First area: viewpoint switching */}
       <div className="panel-section">
         <h3 className="section-title">View</h3>
         <ViewCube />
@@ -228,7 +228,7 @@ function LeftPanel() {
         </div>
       </div>
 
-      {/* 第二个区域：裁剪平面 */}
+      {/* Second area: Clipping Plane */}
       <div className="panel-section">
         <h3 className="section-title">Interior</h3>
         <div className="button-group">
@@ -281,7 +281,7 @@ function LeftPanel() {
         </div>
       </div>
 
-      {/* 第三个区域: 导出 */}
+      {/* Third area: Export */}
       <div className="panel-section">
         <h3 className="section-title">Export</h3>
         <div className="button-group">
@@ -300,7 +300,7 @@ function LeftPanel() {
         </div>
       </div>
 
-      {/* 第四个区域：变换操作 */}
+      {/* Fourth area: Transform */}
       <div className="panel-section">
         <h3 className="section-title">Transform</h3>
         <div className="button-group">
@@ -328,7 +328,7 @@ function LeftPanel() {
         </div>
       </div>
 
-      {/* 第五个区域：几何体添加 */}
+      {/* Fifth area: Geometry */}
       <div className="panel-section">
         <h3 className="section-title">Geometry</h3>
         <div className="button-group">

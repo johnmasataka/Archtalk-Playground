@@ -15,26 +15,26 @@ const DesignStudio = () => {
   const selectedObjectRef = useRef(null);
   const { buildingData, updateBuildingData } = useStore();
 
-  // 更新模型函数
+  // Update model function
   const updateModel = (data) => {
     if (!sceneRef.current) return;
 
     const scene = sceneRef.current;
     
-    // 清除现有网格
+    // Clear existing meshes
     meshesRef.current.forEach(mesh => scene.remove(mesh));
     meshesRef.current = [];
 
-    // 加载模型
+    // Load model
     data.objects.forEach((obj, index) => {
       if (obj.geometry.vertices) {
-        // 计算几何体的边界框
+        // Calculate the bounding box of the geometry
         const boundingBox = {
           min: new THREE.Vector3(Infinity, Infinity, Infinity),
           max: new THREE.Vector3(-Infinity, -Infinity, -Infinity)
         };
         
-        // 找出边界框
+        // Find the bounding box
         obj.geometry.vertices.forEach(vertex => {
           boundingBox.min.x = Math.min(boundingBox.min.x, vertex[0]);
           boundingBox.min.y = Math.min(boundingBox.min.y, vertex[2]);
@@ -44,14 +44,14 @@ const DesignStudio = () => {
           boundingBox.max.z = Math.max(boundingBox.max.z, vertex[1]);
         });
         
-        // 计算中心点
+        // Calculate the center point
         const center = new THREE.Vector3(
           (boundingBox.min.x + boundingBox.max.x) / 2,
           (boundingBox.min.y + boundingBox.max.y) / 2,
           (boundingBox.min.z + boundingBox.max.z) / 2
         );
 
-        // 创建顶点
+        // Create the vertex array
         const vertexArray = new Float32Array(
           obj.geometry.vertices.flatMap(vertex => [
             vertex[0] - center.x,
@@ -63,7 +63,7 @@ const DesignStudio = () => {
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(vertexArray, 3));
 
-        // 创建面索引
+        // Create the face index
         const indices = [];
         obj.geometry.faces.forEach(face => {
           if (face.length === 4) {
@@ -77,7 +77,7 @@ const DesignStudio = () => {
         geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(indices), 1));
         geometry.computeVertexNormals();
 
-        // 创建材质
+        // Create the material
         const material = new THREE.MeshPhongMaterial({
           transparent: obj.material.transparency > 0,
           opacity: 1 - obj.material.transparency,
@@ -85,7 +85,7 @@ const DesignStudio = () => {
           roughness: obj.material.roughness || 0.5
         });
 
-        // 加载纹理或设置颜色
+        // Load the texture or set the color
         if (obj.material.texture) {
           const textureLoader = new THREE.TextureLoader();
           textureLoader.load(obj.material.texture, (texture) => {
@@ -113,13 +113,13 @@ const DesignStudio = () => {
     });
   };
 
-  // 加载和更新模型
+  // Load and update model
   useEffect(() => {
     if (!sceneRef.current || !buildingData || !buildingData.building) return;
 
     const scene = sceneRef.current;
     
-    // 清除现有对象
+    // Clear existing objects
     scene.children = scene.children.filter(child => 
       child.type === 'GridHelper' || 
       child.type === 'TransformControls' || 
@@ -127,7 +127,7 @@ const DesignStudio = () => {
       child.type === 'AmbientLight'
     );
 
-    // 创建材质
+    // Create materials
     const materials = {
       wall: new THREE.MeshStandardMaterial({
         color: 0xcccccc,
@@ -143,30 +143,30 @@ const DesignStudio = () => {
       })
     };
 
-    // 创建房间布局
+    // Create room layout
     const createRoom = (position, size, type) => {
       const { width, depth, height } = size;
       const { x, y, z } = position;
 
-      // 创建地板
+      // Create the floor
       const floorGeometry = new THREE.BoxGeometry(width, 1, depth);
       const floor = new THREE.Mesh(floorGeometry, materials.floor);
       floor.position.set(x, y, z);
       floor.receiveShadow = true;
       scene.add(floor);
 
-      // 创建天花板
+      // Create the ceiling
       const ceilingGeometry = new THREE.BoxGeometry(width, 1, depth);
       const ceiling = new THREE.Mesh(ceilingGeometry, materials.ceiling);
       ceiling.position.set(x, y + height, z);
       ceiling.castShadow = true;
       scene.add(ceiling);
 
-      // 创建墙体
+      // Create the walls
       const wallThickness = 20;
       const wallHeight = height;
 
-      // 前墙
+      // Front wall
       const frontWallGeometry = new THREE.BoxGeometry(width, wallHeight, wallThickness);
       const frontWall = new THREE.Mesh(frontWallGeometry, materials.wall);
       frontWall.position.set(x, y + wallHeight/2, z + depth/2);
@@ -174,7 +174,7 @@ const DesignStudio = () => {
       frontWall.receiveShadow = true;
       scene.add(frontWall);
 
-      // 后墙
+      // Back wall
       const backWallGeometry = new THREE.BoxGeometry(width, wallHeight, wallThickness);
       const backWall = new THREE.Mesh(backWallGeometry, materials.wall);
       backWall.position.set(x, y + wallHeight/2, z - depth/2);
@@ -182,7 +182,7 @@ const DesignStudio = () => {
       backWall.receiveShadow = true;
       scene.add(backWall);
 
-      // 左墙
+      // Left wall
       const leftWallGeometry = new THREE.BoxGeometry(wallThickness, wallHeight, depth);
       const leftWall = new THREE.Mesh(leftWallGeometry, materials.wall);
       leftWall.position.set(x - width/2, y + wallHeight/2, z);
@@ -190,7 +190,7 @@ const DesignStudio = () => {
       leftWall.receiveShadow = true;
       scene.add(leftWall);
 
-      // 右墙
+      // Right wall
       const rightWallGeometry = new THREE.BoxGeometry(wallThickness, wallHeight, depth);
       const rightWall = new THREE.Mesh(rightWallGeometry, materials.wall);
       rightWall.position.set(x + width/2, y + wallHeight/2, z);
@@ -198,7 +198,7 @@ const DesignStudio = () => {
       rightWall.receiveShadow = true;
       scene.add(rightWall);
 
-      // 为每个墙体添加用户数据
+      // Add user data to each wall
       [floor, ceiling, frontWall, backWall, leftWall, rightWall].forEach(wall => {
         wall.userData = {
           id: `${type}-${Math.random().toString(36).substr(2, 9)}`,
@@ -208,30 +208,30 @@ const DesignStudio = () => {
       });
     };
 
-    // 根据buildingData创建房间
-    const standardRoomHeight = buildingData.building.floor_height || 3000; // 使用配置文件中的高度
-    const standardRoomWidth = 6000;  // 标准房间宽度
-    const standardRoomDepth = 4000;  // 标准房间深度
-    const corridorWidth = 1500;      // 走廊宽度
+    // Create rooms based on buildingData
+    const standardRoomHeight = buildingData.building.floor_height || 3000; // Use the height from the configuration file
+    const standardRoomWidth = 6000;  // Standard room width
+    const standardRoomDepth = 4000;  // Standard room depth
+    const corridorWidth = 1500;      // Corridor width
     const wallThickness = buildingData.building.wall_thickness || 150; // 使用配置文件中的墙体厚度
 
-    // 创建客厅
+    // Create the living room
     createRoom(
       { x: 0, y: 0, z: 0 },
       { width: standardRoomWidth * 2, depth: standardRoomDepth * 2, height: standardRoomHeight },
       'living-room'
     );
 
-    // 根据卧室数量创建卧室
+    // Create bedrooms based on the number of bedrooms
     const bedroomCount = buildingData.building.bedrooms || 0;
     if (bedroomCount > 0) {
-      // 计算卧室布局
+      // Calculate the bedroom layout
       const bedroomsPerRow = Math.ceil(bedroomCount / 2);
       const totalWidth = (standardRoomWidth * bedroomsPerRow) + 
                         (corridorWidth * (bedroomsPerRow - 1)) + 
                         (wallThickness * bedroomsPerRow);
 
-      // 创建卧室
+      // Create the bedrooms
       for (let i = 0; i < bedroomCount; i++) {
         const row = Math.floor(i / 2);
         const col = i % 2;
@@ -249,7 +249,7 @@ const DesignStudio = () => {
     }
   }, [buildingData]);
 
-  // 监听 buildingData 变化
+  // Listen for changes in buildingData
   useEffect(() => {
     if (buildingData) {
       updateModel(buildingData);
@@ -259,12 +259,12 @@ const DesignStudio = () => {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // 初始化场景
+    // Initialize the scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
     sceneRef.current = scene;
 
-    // 初始化相机
+    // Initialize the camera
     const camera = new THREE.PerspectiveCamera(
       75,
       containerRef.current.clientWidth / containerRef.current.clientHeight,
@@ -275,14 +275,14 @@ const DesignStudio = () => {
     camera.lookAt(0, 0, 0);
     cameraRef.current = camera;
 
-    // 初始化渲染器
+    // Initialize the renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
     renderer.shadowMap.enabled = true;
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    // 添加光源
+    // Add the ambient light
     const ambientLight = new THREE.AmbientLight(0x404040, 2);
     scene.add(ambientLight);
 
@@ -290,11 +290,11 @@ const DesignStudio = () => {
     directionalLight.position.set(10000, 20000, 10000);
     scene.add(directionalLight);
 
-    // 添加网格
+    // Add the grid helper
     const gridHelper = new THREE.GridHelper(30000, 30);
     scene.add(gridHelper);
 
-    // 初始化控制器
+    // Initialize the controls
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.mouseButtons = {
       LEFT: null,
@@ -306,7 +306,7 @@ const DesignStudio = () => {
     controls.panButton = THREE.MOUSE.MIDDLE;
     controlsRef.current = controls;
 
-    // 初始化变换控制器
+    // Initialize the transform controls
     const transformControls = new TransformControls(camera, renderer.domElement);
     transformControls.setSize(1);
     transformControls.setTranslationSnap(100);
@@ -315,7 +315,7 @@ const DesignStudio = () => {
     scene.add(transformControls);
     transformControlsRef.current = transformControls;
 
-    // 加载初始模型
+    // Load the initial model
     fetch('/building.json')
       .then(response => response.json())
       .then(jsonModel => {
@@ -323,24 +323,24 @@ const DesignStudio = () => {
       })
       .catch(error => console.error('Error loading model:', error));
 
-    // 添加窗口大小变化监听器
+    // Add the window size change listener
     const handleResize = () => {
       if (!containerRef.current || !camera || !renderer) return;
       
       const width = containerRef.current.clientWidth;
       const height = containerRef.current.clientHeight;
       
-      // 更新相机
+      // Update the camera
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       
-      // 更新渲染器
+      // Update the renderer
       renderer.setSize(width, height);
     };
 
     window.addEventListener('resize', handleResize);
 
-    // 动画循环
+    // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
       controlsRef.current?.update();
@@ -348,7 +348,7 @@ const DesignStudio = () => {
     };
     animate();
 
-    // 清理函数
+    // Cleanup function
     return () => {
       window.removeEventListener('resize', handleResize);
       if (containerRef.current) {
@@ -358,7 +358,7 @@ const DesignStudio = () => {
     };
   }, []);
 
-  // 添加键盘快捷键支持
+  // Add keyboard shortcut support
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (!selectedObjectRef.current || !transformControlsRef.current) return;
@@ -394,7 +394,7 @@ const DesignStudio = () => {
       ref={containerRef} 
       className="w-full h-full"
       onMouseDown={(e) => {
-        if (e.button === 0) { // 左键点击
+        if (e.button === 0) { // Left click
           const raycaster = new THREE.Raycaster();
           const mouse = new THREE.Vector2();
           const rect = rendererRef.current.domElement.getBoundingClientRect();

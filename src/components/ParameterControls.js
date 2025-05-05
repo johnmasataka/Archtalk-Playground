@@ -41,41 +41,41 @@ function ParameterControls() {
   useEffect(() => {
     if (!welcomeMessageSent.current && nextParameter) {
       welcomeMessageSent.current = true;
-      // 发送欢迎消息
+      // Send welcome message
       sendToGPT("Let's start designing the building!").then(() => {
-        // 在欢迎消息后添加参数解释信息
+        // Add parameter explanation information after the welcome message
         if (nextParameter) {
-          // 直接使用来自GPT的消息，不再使用硬编码的介绍文字
+          // Use the messages from GPT directly,不再使用硬编码的介绍文字
           const store = useStore.getState();
           
-          // 检查是否已经有GPT生成的消息
+          // Check if there are already GPT-generated messages
           const lastMessage = store.messages[store.messages.length - 1];
           if (!lastMessage || lastMessage.role !== 'assistant' || lastMessage.content === "Let's start designing the building!") {
-            // 构建参数介绍消息
+            // Build parameter introduction message
             let explanationMessage = "";
             
-            // 优先使用GPT生成的描述
+            // Use GPT-generated description first
             if (nextParameter.description && nextParameter.description.trim() !== '') {
               explanationMessage = nextParameter.description;
             } else {
-              // 备用方案：构建基本介绍
-              explanationMessage = `现在您可以调整${nextParameter.label || nextParameter.key}参数。`;
+              // Backup program: building a basic introduction
+              explanationMessage = `Now you can adjust the ${nextParameter.label || nextParameter.key} parameter.`;
               
-              // 添加一些基本信息
+              // Add some basic information
               if (nextParameter.min !== undefined && nextParameter.max !== undefined) {
-                explanationMessage += ` 可调范围为${nextParameter.min}到${nextParameter.max}。`;
+                explanationMessage += ` The adjustable range is from ${nextParameter.min} to ${nextParameter.max}.`;
               }
               
-              explanationMessage += " 这个参数会影响建筑的外观和功能。";
+              explanationMessage += " This parameter affects the appearance and function of the building.";
             }
             
-            // 添加消息
+            // Add message
             store.messages.push({ 
               role: 'assistant', 
               content: explanationMessage
             });
             
-            // 触发状态更新
+            // Trigger state update
             useStore.setState({ messages: [...store.messages] });
           }
         }
@@ -299,7 +299,7 @@ function ParameterControls() {
     
     // For color parameters, use color picker
     if (isColorParam) {
-      // 根据元素类型添加更具体的标签
+      // Add more specific labels based on element type
       let colorLabel = "Color";
       if (element === 'roof') colorLabel = "Roof Color";
       else if (element === 'wall') colorLabel = "Wall Color";

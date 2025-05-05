@@ -13,13 +13,13 @@ class OpenAIManager {
     const organization = getOpenAIOrganization();
     console.log('Initializing OpenAI instance with key:', apiKey.substring(0, 3) + '...');
     
-    // 配置OpenAI实例
+    // Configure the OpenAI instance
     const config = {
       apiKey: apiKey,
       dangerouslyAllowBrowser: true
     };
     
-    // 如果有组织ID，添加到配置中
+    // If there is an organization ID, add it to the configuration
     if (organization) {
       config.organization = organization;
     }
@@ -42,13 +42,13 @@ class OpenAIManager {
     // Update the stored API key
     setOpenAIApiKey(newKey);
     
-    // 配置OpenAI实例
+    // Configure the OpenAI instance
     const config = {
       apiKey: newKey,
       dangerouslyAllowBrowser: true
     };
     
-    // 如果有组织ID，添加到配置中
+    // If there is an organization ID, add it to the configuration
     const organization = getOpenAIOrganization();
     if (organization) {
       config.organization = organization;

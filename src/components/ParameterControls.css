@@ -328,7 +328,7 @@
   color: #666;
 }
 
-/* 下拉选择框样式 */
+/* Dropdown select box style */
 .select-control {
   width: 100%;
   padding: var(--spacing-sm);
@@ -346,7 +346,7 @@
   border-color: var(--primary-color);
 }
 
-/* 数字输入框样式 */
+/* Number input box style */
 .number-input {
   width: 100%;
   padding: var(--spacing-sm);

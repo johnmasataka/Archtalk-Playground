@@ -18,17 +18,17 @@ const ChatInterface = () => {
     scrollToBottom();
   }, [messages, typingMessages]);
 
-  // 处理新消息的打字效果
+  // Handle typing effects for new messages
   useEffect(() => {
-    // 如果有新消息添加，并且是AI回复
+    // If a new message is added and it's an AI reply
     if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
       const latestMessage = messages[messages.length - 1];
       
-      // 检查这条消息是否已经在typingMessages中
+      // Check if this message is already in typingMessages
       const messageExists = typingMessages.some(m => m.id === messages.length - 1);
       
       if (!messageExists) {
-        // 创建新的打字消息
+        // Create a new typed message
         const newTypingMessage = {
           id: messages.length - 1,
           role: latestMessage.role,
@@ -43,9 +43,9 @@ const ChatInterface = () => {
     }
   }, [messages]);
 
-  // 打字效果的计时器
+  // Timer for typing effects
   useEffect(() => {
-    // 找到所有未完成的打字消息
+    // Find all incomplete typing messages
     const incompleteMessages = typingMessages.filter(msg => !msg.isComplete);
     
     if (incompleteMessages.length > 0) {
@@ -69,7 +69,7 @@ const ChatInterface = () => {
             return msg;
           });
         });
-      }, 2); // 打字速度 
+      }, 2); // typing speed 
       
       return () => clearInterval(typingInterval);
     }
@@ -83,7 +83,7 @@ const ChatInterface = () => {
     }
   };
 
-  // 根据消息ID查找对应的打字效果消息
+  // Find the typing effect message corresponding to the message ID
   const getTypingMessage = (index, message) => {
     const typingMsg = typingMessages.find(m => m.id === index);
     

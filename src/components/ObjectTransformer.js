@@ -2,25 +2,25 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 
-// 这个组件不会直接渲染任何内容，它只是处理对象选择和变换的逻辑
+// This component does not render any content, it only handles the logic of object selection and transformation
 function ObjectTransformer() {
   const transformControlsRef = useRef(null);
   const selectedObjectRef = useRef(null);
-  const operationRef = useRef('translate'); // 默认操作为移动
+  const operationRef = useRef('translate'); // Default operation is translation
   const isActiveRef = useRef(false);
   
-  // 为撤销/重做功能添加历史记录
+  // Add history for undo/redo functionality
   const historyRef = useRef([]);
   const historyIndexRef = useRef(-1);
   const isTransformingRef = useRef(false);
   const objectStartStateRef = useRef(null);
 
-  // 获取当前激活的相机
+  // Get the currently active camera
   const getActiveCamera = () => {
     return window.camera ? window.camera.active : null;
   };
 
-  // 记录对象状态的函数
+  // Function to record object state
   const saveObjectState = (object) => {
     if (!object) return null;
     
@@ -31,7 +31,7 @@ function ObjectTransformer() {
     };
   };
 
-  // 恢复对象状态的函数
+  // Function to restore object state
   const restoreObjectState = (object, state) => {
     if (!object || !state) return;
     
@@ -40,9 +40,9 @@ function ObjectTransformer() {
     object.scale.copy(state.scale);
   };
 
-  // 添加到历史记录的函数
+  // Function to add to history
   const addToHistory = (oldState, newState) => {
-    // 如果我们在历史中间执行了一个新操作，需要删除之后的历史
+    // If we execute a new operation in the middle of the history, we need to delete the history after that
     if (historyIndexRef.current < historyRef.current.length - 1) {
       historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
     }
@@ -57,7 +57,7 @@ function ObjectTransformer() {
     console.log(`Added action to history. History length: ${historyRef.current.length}, Current index: ${historyIndexRef.current}`);
   };
 
-  // 撤销上一步操作
+  // Function to undo the previous operation
   const undo = () => {
     if (historyIndexRef.current < 0 || !historyRef.current.length) {
       console.log('Nothing to undo');
@@ -77,7 +77,7 @@ function ObjectTransformer() {
     historyIndexRef.current--;
   };
 
-  // 重做上一步操作
+  // Function to redo the previous operation
   const redo = () => {
     if (historyIndexRef.current >= historyRef.current.length - 1) {
       console.log('Nothing to redo');
@@ -96,7 +96,7 @@ function ObjectTransformer() {
     }
   };
 
-  // 通过ID查找对象
+  // Function to find object by ID
   const findObjectById = (id) => {
     let foundObject = null;
     
@@ -111,9 +111,9 @@ function ObjectTransformer() {
     return foundObject;
   };
 
-  // 初始化对象选择和变换控制
+  // Initialize object selection and transformation control
   useEffect(() => {
-    // 变换控制器的处理函数
+    // Function to handle operation mode change
     const handleOperationModeChange = (event) => {
       if (!isActiveRef.current || !transformControlsRef.current) return;
       
@@ -125,23 +125,23 @@ function ObjectTransformer() {
       }
     };
 
-    // 处理拖动状态变化
+    // Function to handle dragging state change
     const handleDraggingChanged = (event) => {
       if (window.orbitControls) {
         window.orbitControls.enabled = !event.value;
       }
       
-      // 当拖动开始时保存初始状态
+      // When dragging starts, save the initial state
       if (event.value && selectedObjectRef.current) {
         isTransformingRef.current = true;
         objectStartStateRef.current = saveObjectState(selectedObjectRef.current);
       } 
-      // 当拖动结束时记录历史
+      // When dragging ends, record history
       else if (!event.value && isTransformingRef.current && selectedObjectRef.current) {
         isTransformingRef.current = false;
         const objectEndState = saveObjectState(selectedObjectRef.current);
         
-        // 只有在状态实际发生变化时才记录历史
+        // Only record history if the state actually changes
         if (objectStartStateRef.current && 
             (objectStartStateRef.current.position.distanceTo(objectEndState.position) > 0.001 ||
              objectStartStateRef.current.rotation.equals(objectEndState.rotation) === false ||
@@ -154,7 +154,7 @@ function ObjectTransformer() {
       }
     };
 
-    // 创建变换控制器
+    // Function to create transform controls
     const createTransformControls = () => {
       try {
         if (!window.scene || !getActiveCamera() || !window.renderer) {
@@ -162,12 +162,12 @@ function ObjectTransformer() {
           return;
         }
 
-        // 如果已经存在，则先移除
+        // If it already exists, remove it first
         if (transformControlsRef.current && window.scene) {
-          // 确保先分离任何附加的对象
+          // Ensure any attached objects are detached first
           transformControlsRef.current.detach();
           
-          // 移除事件监听
+          // Remove event listeners
           if (transformControlsRef.current._listeners && 
               transformControlsRef.current._listeners['dragging-changed']) {
             transformControlsRef.current.removeEventListener('dragging-changed', handleDraggingChanged);
@@ -177,13 +177,13 @@ function ObjectTransformer() {
           transformControlsRef.current = null;
         }
 
-        // 创建变换控制器
+        // Create transform controls
         const transformControls = new TransformControls(
           getActiveCamera(), 
           window.renderer.domElement
         );
         
-        // 确保相机已正确设置
+        // Ensure the camera is correctly set
         if (!transformControls.camera) {
           console.error('Failed to set camera for transform controls');
           return;
@@ -191,18 +191,18 @@ function ObjectTransformer() {
         
         transformControlsRef.current = transformControls;
         
-        // 设置操作模式
+        // Set operation mode
         transformControls.setMode(operationRef.current);
         
-        // 添加事件监听
+        // Add event listeners
         transformControls.addEventListener('dragging-changed', handleDraggingChanged);
         
-        // 添加到场景
+        // Add to scene
         window.scene.add(transformControls);
         
         isActiveRef.current = true;
         
-        // 强制更新以确保控制器正确初始化
+        // Force update to ensure the controller is correctly initialized
         transformControls.updateMatrixWorld();
       } catch (error) {
         console.error('Error creating transform controls:', error);
@@ -210,7 +210,7 @@ function ObjectTransformer() {
       }
     };
 
-    // 安全地附加对象到变换控制器
+    // Function to safely attach object to transform controls
     const attachObject = (object) => {
       try {
         if (!transformControlsRef.current || !object) {
@@ -218,21 +218,21 @@ function ObjectTransformer() {
           return false;
         }
         
-        // 确保对象是有效的THREE.Object3D并且在场景中
+        // Ensure the object is a valid THREE.Object3D and in the scene
         if (!(object instanceof THREE.Object3D) || !object.parent) {
           console.warn('Cannot attach: object is not valid or not in scene');
           return false;
         }
         
-        // 先分离当前对象（如果有）
+        // First detach the current object (if any)
         transformControlsRef.current.detach();
         
-        // 确保对象的世界矩阵是最新的
+        // Ensure the object's world matrix is up to date
         object.updateMatrixWorld(true);
         
-        // 附加对象并更新控制器
+        // Attach the object and update the controller
         transformControlsRef.current.attach(object);
-        // 正确更新变换控制器的矩阵
+        // Correctly update the transform controls' matrix
         transformControlsRef.current.updateMatrixWorld();
         
         return true;
@@ -242,21 +242,21 @@ function ObjectTransformer() {
       }
     };
     
-    // 安全地分离对象
+    // Function to safely detach object
     const detachObject = () => {
       try {
         if (!transformControlsRef.current) return;
         
-        // 保存当前选择的对象的引用（如果有）
+        // Save the reference to the currently selected object (if any)
         const objectToDetach = selectedObjectRef.current;
         
-        // 首先将选择引用设置为null以避免后续操作引用到已分离的对象
+        // Set the selection reference to null to avoid subsequent operations referencing the detached object
         selectedObjectRef.current = null;
         
-        // 分离控制器
+        // Detach the controller
         transformControlsRef.current.detach();
         
-        // 通知其他组件对象已被取消选择
+        // Notify other components that the object has been deselected
         window.dispatchEvent(new CustomEvent('objectSelected', { 
           detail: { object: null, selected: false, info: null } 
         }));
@@ -269,24 +269,24 @@ function ObjectTransformer() {
       }
     };
 
-    // 处理对象点击选择
+    // Function to handle object click selection
     const handleObjectClick = (event) => {
       try {
         if (!window.scene || !getActiveCamera() || !window.renderer) return;
         
-        // 创建射线
+        // Create a raycaster
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         
-        // 计算鼠标位置
+        // Calculate mouse position
         const rect = window.renderer.domElement.getBoundingClientRect();
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
         
-        // 设置射线
+        // Set the raycaster
         raycaster.setFromCamera(mouse, getActiveCamera());
         
-        // 查找场景中可以点击的对象 - 只选择可选择的对象
+        // Find objects that can be clicked - only select objects that are selectable
         const clickableObjects = [];
         window.scene.traverse((object) => {
           if (object.isMesh && 
@@ -300,41 +300,41 @@ function ObjectTransformer() {
           }
         });
         
-        // 检查与可点击对象的交点
+        // Check for intersections with clickable objects
         const intersects = raycaster.intersectObjects(clickableObjects, false); // false表示不检查子对象
         
         if (intersects.length > 0) {
-          // 选中第一个相交的对象
+          // Select the first intersecting object
           const object = intersects[0].object;
           
-          // 检查对象是否是轮廓线
+          // Check if the object is a wireframe outline
           if (object instanceof THREE.LineSegments) {
             console.warn('Selected object is a wireframe outline, ignoring');
             return;
           }
           
-          // 检查对象是否有效且仍在场景中
+          // Check if the object is valid and still in the scene
           if (!object || !object.parent) {
             console.warn('Selected object is not valid or not in scene');
             return;
           }
           
-          // 确保我们选择的是主对象而不是其子对象
+          // Ensure we select the main object rather than its child
           const targetObject = object.userData.isOutline ? object.parent : object;
           
-          // 如果变换控制器不存在，则创建
+          // If the transform controls do not exist, create them
           if (!transformControlsRef.current) {
             createTransformControls();
           }
           
-          // 使用安全附加函数
+          // Use the safe attach function
           if (attachObject(targetObject)) {
             selectedObjectRef.current = targetObject;
             
-            // 显示对象信息
+            // Display object information
             console.log('Selected object:', targetObject.userData);
             
-            // 通知组件对象已被选中
+            // Notify other components that the object has been selected
             window.dispatchEvent(new CustomEvent('objectSelected', { 
               detail: { 
                 object: targetObject, 
@@ -348,7 +348,7 @@ function ObjectTransformer() {
             }));
           }
         } else {
-          // 如果点击在空白处，取消选择对象
+          // If clicked on empty space, deselect the object
           detachObject();
         }
       } catch (error) {
@@ -356,22 +356,22 @@ function ObjectTransformer() {
       }
     };
 
-    // 取消选择对象
+    // Function to deselect object
     const handleDeselectObject = () => {
       if (transformControlsRef.current && selectedObjectRef.current) {
         transformControlsRef.current.detach();
         selectedObjectRef.current = null;
         
-        // 通知组件对象已被取消选择
+        // Notify other components that the object has been deselected
         window.dispatchEvent(new CustomEvent('objectSelected', { 
           detail: { object: null, selected: false } 
         }));
       }
     };
 
-    // 处理键盘事件
+    // Function to handle keyboard events
     const handleKeyDown = (event) => {
-      // Ctrl+Z 和 Ctrl+Y 用于撤销和重做
+      // Ctrl+Z and Ctrl+Y for undo and redo
       if (event.ctrlKey) {
         if (event.key === 'z') {
           undo();
@@ -382,7 +382,7 @@ function ObjectTransformer() {
         }
       }
       
-      // ESC 键用于取消选择
+      // ESC key for deselecting object
       if (event.key === 'Escape') {
         handleDeselectObject();
         event.preventDefault();
@@ -392,17 +392,17 @@ function ObjectTransformer() {
       if (event.key === 'Delete' || event.key === 'Backspace') {
         if (selectedObjectRef.current && window.scene) {
           try {
-            // 获取要删除的对象
+            // Get the object to be removed
             const objectToRemove = selectedObjectRef.current;
             
-            // 先保存引用并清空选中对象，以避免后续操作引用已删除的对象
+            // Save the reference and clear the selected object to avoid subsequent operations referencing the deleted object
             selectedObjectRef.current = null;
             
-            // 安全地分离控制器
+            // Safely detach the controller
             if (transformControlsRef.current) {
               transformControlsRef.current.detach();
               
-              // 确保在下一帧更新控制器
+              // Ensure the controller is updated in the next frame
               requestAnimationFrame(() => {
                 if (transformControlsRef.current) {
                   transformControlsRef.current.updateMatrixWorld();
@@ -410,11 +410,11 @@ function ObjectTransformer() {
               });
             }
             
-            // 从场景中移除对象
+            // Remove the object from the scene
             if (window.scene && objectToRemove.parent === window.scene) {
               window.scene.remove(objectToRemove);
               
-              // 释放几何体和材质资源
+              // Release geometry and material resources
               if (objectToRemove.geometry) {
                 objectToRemove.geometry.dispose();
               }
@@ -427,13 +427,13 @@ function ObjectTransformer() {
                 }
               }
               
-              // 确保清除子对象
+              // Ensure the child objects are cleared
               while (objectToRemove.children.length > 0) {
                 const child = objectToRemove.children[0];
                 objectToRemove.remove(child);
               }
               
-              // 通知组件对象已被取消选择
+              // Notify other components that the object has been deselected
               window.dispatchEvent(new CustomEvent('objectSelected', { 
                 detail: { selected: false, info: null } 
               }));
@@ -450,18 +450,18 @@ function ObjectTransformer() {
         }
       }
       
-      // 快捷键切换操作模式
+      // Shortcut keys to switch operating modes
       if (selectedObjectRef.current && transformControlsRef.current) {
         switch(event.key) {
-          case 'g': // 移动
+          case 'g': // translate
             transformControlsRef.current.setMode('translate');
             operationRef.current = 'translate';
             break;
-          case 'r': // 旋转
+          case 'r': // rotate
             transformControlsRef.current.setMode('rotate');
             operationRef.current = 'rotate';
             break;
-          case 's': // 缩放
+          case 's': // scale
             transformControlsRef.current.setMode('scale');
             operationRef.current = 'scale';
             break;
@@ -471,12 +471,12 @@ function ObjectTransformer() {
       }
     };
 
-    // 添加事件监听
+    // Add event listeners
     window.addEventListener('click', handleObjectClick);
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('changeObjectOperation', handleOperationModeChange);
     
-    // 每当相机视角模式改变时，更新变换控制器的相机引用
+    // Update the camera reference of the transform controller whenever the camera view mode changes
     const handleViewModeChange = () => {
       if (transformControlsRef.current && getActiveCamera()) {
         transformControlsRef.current.camera = getActiveCamera();
@@ -486,14 +486,14 @@ function ObjectTransformer() {
     
     window.addEventListener('changeViewMode', handleViewModeChange);
     
-    // 清理函数
+    // Cleanup function
     return () => {
       window.removeEventListener('click', handleObjectClick);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('changeObjectOperation', handleOperationModeChange);
       window.removeEventListener('changeViewMode', handleViewModeChange);
       
-      // 移除变换控制器
+      // Remove the transform controller
       if (transformControlsRef.current && window.scene) {
         transformControlsRef.current.removeEventListener('dragging-changed', handleDraggingChanged);
         window.scene.remove(transformControlsRef.current);
@@ -501,7 +501,7 @@ function ObjectTransformer() {
     };
   }, []);
 
-  // 这个组件不渲染任何内容
+  // This component does not render any content
   return null;
 }
 
