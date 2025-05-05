@@ -193,6 +193,19 @@ function LeftPanel() {
     }));
   };
 
+  // 处理几何体拖拽开始
+  const handleGeometryDragStart = (e, geometryType) => {
+    e.dataTransfer.setData('geometryType', geometryType);
+  };
+
+  // 处理几何体按钮点击
+  const handleGeometryClick = (geometryType) => {
+    // 通知 BuildingModel 组件创建几何体
+    window.dispatchEvent(new CustomEvent('createGeometry', { 
+      detail: { type: geometryType } 
+    }));
+  };
+
   return (
     <div className="left-panel">
       {/* 第一个区域：视角切换 */}
@@ -315,13 +328,34 @@ function LeftPanel() {
         </div>
       </div>
 
-      {/* 第五个区域：模型添加 */}
+      {/* 第五个区域：几何体添加 */}
       <div className="panel-section">
-        <h3 className="section-title">Model</h3>
+        <h3 className="section-title">Geometry</h3>
         <div className="button-group">
-          <button className="panel-button">Human</button>
-          <button className="panel-button">Tree</button>
-          <button className="panel-button">Car</button>
+          <button 
+            className="panel-button"
+            draggable="true"
+            onDragStart={(e) => handleGeometryDragStart(e, 'cube')}
+            onClick={() => handleGeometryClick('cube')}
+          >
+            Cube
+          </button>
+          <button 
+            className="panel-button"
+            draggable="true"
+            onDragStart={(e) => handleGeometryDragStart(e, 'sphere')}
+            onClick={() => handleGeometryClick('sphere')}
+          >
+            Sphere
+          </button>
+          <button 
+            className="panel-button"
+            draggable="true"
+            onDragStart={(e) => handleGeometryDragStart(e, 'pyramid')}
+            onClick={() => handleGeometryClick('pyramid')}
+          >
+            Pyramid
+          </button>
         </div>
       </div>
     </div>

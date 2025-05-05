@@ -12,12 +12,12 @@ const BuildingModel = () => {
     const rendererRef = useRef();
     const controlsRef = useRef();
     const animationFrameRef = useRef();
-    const roomLabelsRef = useRef([]);  // 用于存储房间标签的引用
-    const wireframeRef = useRef([]);   // 用于存储所有轮廓线的引用
-    const gridHelperRef = useRef();    // 用于存储网格引用
+    const roomLabelsRef = useRef([]);  // References used to store room labels
+    const wireframeRef = useRef([]);   // Reference for storing all contour lines
+    const gridHelperRef = useRef();    // Reference for storing grid helper
     const [isLoading, setIsLoading] = useState(true);
     const [selectedObject, setSelectedObject] = useState(null);
-    const [isOutlineVisible, setIsOutlineVisible] = useState(true); // 默认显示轮廓线
+    const [isOutlineVisible, setIsOutlineVisible] = useState(true); // Default display contour lines
     const [stats, setStats] = useState({
         totalArea: 0,
         totalFloors: 0,
@@ -30,27 +30,25 @@ const BuildingModel = () => {
     // 从 store 获取建筑数据
     const buildingData = useStore(state => state.buildingData);
 
-    // 初始化场景
+    // Initialize the scene
     useEffect(() => {
         if (!containerRef.current) return;
 
-            // 创建场景
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0xf0f0f0);
             sceneRef.current = scene;
             
-            // 将场景引用添加到全局window对象，以便导出功能可以访问
             window.scene = scene;
 
-            // 创建相机
+            // Create the camera
             const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 50000);
             camera.position.set(20, 0, 20);
             camera.lookAt(0, 0, 0);
             cameraRef.current = camera;
 
-            // 创建正交相机（用于等角视图）
+            // Create orthogonal cameras (for equirectangular views)
             const aspect = window.innerWidth / window.innerHeight;
-            const frustumSize = 30; // 增大视野范围
+            const frustumSize = 30; 
             const orthographicCamera = new THREE.OrthographicCamera(
                 -frustumSize * aspect / 2,
                 frustumSize * aspect / 2,
@@ -59,19 +57,19 @@ const BuildingModel = () => {
                 0.1,
                 1000
             );
-            // 设置为典型的等角视图位置
+            // Set to typical equirectangular view position
             orthographicCamera.position.set(15, 15, 15);
             orthographicCamera.lookAt(0, 0, 0);
             orthographicCamera.updateProjectionMatrix();
 
-            // 保存两种相机的引用
+            // Save references to both cameras
             cameraRef.current = {
                 perspective: camera,
                 orthographic: orthographicCamera,
-                active: camera  // 默认使用透视相机
+                active: camera  
             };
 
-            // 创建渲染器
+            // Create renderer
             const renderer = new THREE.WebGLRenderer({ 
                 antialias: true,
                 powerPreference: "high-performance"
@@ -79,22 +77,22 @@ const BuildingModel = () => {
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            // 启用局部裁剪
+            // Enable local clipping
             renderer.localClippingEnabled = true;
             containerRef.current.appendChild(renderer.domElement);
             rendererRef.current = renderer;
 
-            // 创建控制器 - 使用活动相机（perspective）
+            // Create controller - use active camera (perspective)
             const controls = new OrbitControls(cameraRef.current.active, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.minDistance = 5;
-            controls.maxDistance = 100;  // 增加最大距离
+            controls.maxDistance = 100;  // Increase maximum distance
             controls.target.set(0, 0, 0);
             
-            // 添加控制器变化监听，实时更新ViewCube
+            // Add controller change listener to update ViewCube
             controls.addEventListener('change', () => {
-                // 广播相机变化事件
+                // Broadcast camera change event
                 window.dispatchEvent(new CustomEvent('cameraChange', {
                     detail: {
                         camera: cameraRef.current.active
@@ -102,10 +100,10 @@ const BuildingModel = () => {
                 }));
             });
             
-            // 监听 Room 标签显示/隐藏事件
+            // Listen for Room label display/hide event
             const handleToggleRoomLabels = (e) => {
                 const { visible } = e.detail;
-                // 遍历所有房间标签，设置可见性
+                // Iterate through all room labels and set visibility
                 if (roomLabelsRef.current) {
                     roomLabelsRef.current.forEach(label => {
                         if (label) {
@@ -117,12 +115,12 @@ const BuildingModel = () => {
             
             window.addEventListener('toggleRoomLabels', handleToggleRoomLabels);
             
-            // 监听对象轮廓显示/隐藏事件
+            // Listen for object contour display/hide event
             const handleToggleOutlines = (e) => {
                 const { visible } = e.detail;
-                // 更新组件状态
+                // Update component state
                 setIsOutlineVisible(visible);
-                // 遍历所有轮廓线，设置可见性
+                // Iterate through all contour lines and set visibility
                 if (wireframeRef.current) {
                     wireframeRef.current.forEach(wireframe => {
                         if (wireframe) {
@@ -134,19 +132,19 @@ const BuildingModel = () => {
             
             window.addEventListener('toggleOutlines', handleToggleOutlines);
             
-            // 设置鼠标按键映射
+            // Set mouse button mapping
             controls.mouseButtons = {
-                LEFT: null,  // 禁用左键
-                MIDDLE: THREE.MOUSE.PAN,  // 中键平移
-                RIGHT: THREE.MOUSE.ROTATE  // 右键旋转
+                LEFT: null,  // Disable left button
+                MIDDLE: THREE.MOUSE.PAN,  // Middle button pan
+                RIGHT: THREE.MOUSE.ROTATE  // Right button rotate
             };
             
-            // 启用平移和缩放
+            // Enable panning and zooming
             controls.enablePan = true;
             controls.enableZoom = true;
             controls.zoomSpeed = 2.0;
             controls.rotateSpeed = 0.5;
-            controls.panSpeed = 1.0;  // 添加平移速度
+            controls.panSpeed = 1.0;  // Add panning speed
             
             // 添加 shift 键检测
             const handleKeyDown = (event) => {
@@ -164,7 +162,7 @@ const BuildingModel = () => {
                     controls.mouseButtons = {
                         LEFT: null,
                         MIDDLE: THREE.MOUSE.PAN,
-                        RIGHT: THREE.MOUSE.ROTATE  // 恢复右键旋转
+                        RIGHT: THREE.MOUSE.ROTATE  
                     };
                 }
             };
@@ -174,7 +172,7 @@ const BuildingModel = () => {
             
             controlsRef.current = controls;
 
-            // 添加环境光和平行光
+            // Add ambient and parallel light
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambientLight);
 
@@ -182,7 +180,7 @@ const BuildingModel = () => {
             directionalLight.position.set(10, 10, 10);
             directionalLight.castShadow = true;
             
-            // 调整阴影贴图大小和属性，提高阴影质量
+            // Adjust shadow map size and properties to improve shadow quality
             directionalLight.shadow.mapSize.width = 2048;
             directionalLight.shadow.mapSize.height = 2048;
             directionalLight.shadow.camera.near = 0.5;
@@ -195,17 +193,17 @@ const BuildingModel = () => {
             
             scene.add(directionalLight);
             
-            // 添加第二个方向光源，从不同角度照射，减少阴影伪影
+            // Add second directional light from different angle to reduce shadow artifacts
             const secondaryLight = new THREE.DirectionalLight(0xffffff, 0.5);
             secondaryLight.position.set(-10, 5, -10);
             scene.add(secondaryLight);
 
-            // 添加网格
+            // Add grid
             const gridHelper = new THREE.GridHelper(50, 50);
             scene.add(gridHelper);
             gridHelperRef.current = gridHelper;
             
-            // 监听网格显示/隐藏事件
+            // Listen for grid display/hide event
             const handleToggleGridMesh = (e) => {
                 const { visible } = e.detail;
                 if (gridHelperRef.current) {
@@ -215,17 +213,22 @@ const BuildingModel = () => {
             
             window.addEventListener('toggleGridMesh', handleToggleGridMesh);
 
-            // 动画循环
+            // Animated Loop
             const animate = () => {
                 animationFrameRef.current = requestAnimationFrame(animate);
                 controls.update();
-                // 使用活动相机进行渲染
+                // Use active camera for rendering
                 renderer.render(scene, cameraRef.current.active);
             };
 
             animate();
 
-            // 清理函数
+            // Add event listeners
+            window.addEventListener('createGeometry', handleCreateGeometry);
+            containerRef.current.addEventListener('drop', handleDrop);
+            containerRef.current.addEventListener('dragover', handleDragOver);
+
+            // Cleanup function
             return () => {
                 window.removeEventListener('keydown', handleKeyDown);
                 window.removeEventListener('keyup', handleKeyUp);
@@ -238,13 +241,16 @@ const BuildingModel = () => {
                 if (containerRef.current && renderer.domElement) {
                     containerRef.current.removeChild(renderer.domElement);
                 }
-                // 清除全局场景引用
+                // Clear global scene reference
                 window.scene = null;
                 renderer.dispose();
+                window.removeEventListener('createGeometry', handleCreateGeometry);
+                containerRef.current.removeEventListener('drop', handleDrop);
+                containerRef.current.removeEventListener('dragover', handleDragOver);
             };
     }, []);
 
-    // 加载和渲染JSON数据 - 初始加载
+    // Load and render JSON data - initial load
     useEffect(() => {
         if (!sceneRef.current || !isLoading) return;
 
@@ -252,7 +258,7 @@ const BuildingModel = () => {
         const camera = cameraRef.current;
         const controls = controlsRef.current;
 
-        // 创建材质
+        // Create materials
         const wallMaterial = new THREE.MeshPhongMaterial({ 
             color: 0xcccccc,
             side: THREE.DoubleSide
@@ -278,23 +284,23 @@ const BuildingModel = () => {
         if (buildingData) {
             console.log('Rendering building data from store');
             
-            // 渲染 JSON 数据
+            // Render JSON data
             renderJsonModel(buildingData, scene, wallMaterial, floorMaterial, windowMaterial, doorMaterial);
             
-            // 计算模型的边界框
+            // Calculate model bounding box
             const boundingBox = new THREE.Box3().setFromObject(scene);
             const center = boundingBox.getCenter(new THREE.Vector3());
             const size = boundingBox.getSize(new THREE.Vector3());
             
-            // 调整相机位置以适应模型（仅在初始加载时）
+            // Adjust camera position to fit model (only on initial load)
             if (isLoading) {
                 const maxDim = Math.max(size.x, size.y, size.z);
-                // 使用perspective相机进行计算
+                // Use perspective camera for calculation
                 const perspCamera = cameraRef.current.perspective;
                 const fov = perspCamera.fov * (Math.PI / 180);
                 let cameraZ = Math.abs(maxDim / Math.sin(fov / 2));
                 
-                // 设置初始相机位置
+                // Set initial camera position
                 perspCamera.position.set(20, 5, 20);
                 perspCamera.lookAt(center);
                 controls.target.copy(center);
@@ -303,7 +309,7 @@ const BuildingModel = () => {
             
             setIsLoading(false);
         } else {
-            // 如果没有建筑数据，尝试直接从文件加载
+            // If no building data is available, try loading directly from a file
             console.log('Loading JSON file directly...');
             fetch('/hs.json')
                 .then(response => {
@@ -315,23 +321,23 @@ const BuildingModel = () => {
                 .then(data => {
                     console.log('JSON model loaded successfully', data);
                     
-                    // 渲染 JSON 数据
+                    // Render JSON data
                     renderJsonModel(data, scene, wallMaterial, floorMaterial, windowMaterial, doorMaterial);
                     
-                    // 计算模型的边界框
+                    // Calculate model bounding box
                     const boundingBox = new THREE.Box3().setFromObject(scene);
                     const center = boundingBox.getCenter(new THREE.Vector3());
                     const size = boundingBox.getSize(new THREE.Vector3());
                     
-                    // 调整相机位置以适应模型（仅在初始加载时）
+                    // Adjust camera position to fit model (only on initial load)
                     if (isLoading) {
                         const maxDim = Math.max(size.x, size.y, size.z);
-                        // 使用perspective相机进行计算
+                        // Use perspective camera for calculation
                         const perspCamera = cameraRef.current.perspective;
                         const fov = perspCamera.fov * (Math.PI / 180);
                         let cameraZ = Math.abs(maxDim / Math.sin(fov / 2));
                         
-                        // 设置初始相机位置
+                        // Set initial camera position
                         perspCamera.position.set(20, 0, 20);
                         perspCamera.lookAt(center);
                         controls.target.copy(center);
@@ -347,7 +353,7 @@ const BuildingModel = () => {
         }
     }, [isLoading, buildingData]);
 
-    // 监听 buildingData 变化，重新渲染模型
+    // Listen for buildingData changes, re-render model
     useEffect(() => {
         if (!sceneRef.current || isLoading) return;
         
@@ -357,13 +363,13 @@ const BuildingModel = () => {
         const camera = cameraRef.current;
         const controls = controlsRef.current;
         
-        // 清除当前场景中的所有对象（保留光源和网格）
+        // Clear all objects in current scene (keep lights and grid)
         const objectsToRemove = [];
         scene.traverse((object) => {
             if (object instanceof THREE.Mesh && !(object instanceof THREE.GridHelper)) {
                 objectsToRemove.push(object);
             }
-            // 清除所有THREE.Sprite对象（标签）
+            // Clear all THREE.Sprite objects (labels)
             if (object instanceof THREE.Sprite) {
                 objectsToRemove.push(object);
             }
@@ -381,11 +387,11 @@ const BuildingModel = () => {
             }
         });
         
-        // 清空标签引用数组和轮廓线引用数组
+        // Clear label reference arrays and wireframe reference arrays
         roomLabelsRef.current = [];
         wireframeRef.current = [];
         
-        // 创建材质
+        // Create materials
         const wallMaterial = new THREE.MeshPhongMaterial({ 
             color: 0xcccccc,
             side: THREE.DoubleSide
@@ -408,23 +414,23 @@ const BuildingModel = () => {
             side: THREE.DoubleSide
         });
         
-        // 渲染新的 JSON 数据
+        // Render new JSON data
         renderJsonModel(buildingData, scene, wallMaterial, floorMaterial, windowMaterial, doorMaterial);
         
-        // 计算模型的边界框
+        // Calculate model bounding box
         const boundingBox = new THREE.Box3().setFromObject(scene);
         const center = boundingBox.getCenter(new THREE.Vector3());
         const size = boundingBox.getSize(new THREE.Vector3());
         
-        // 调整相机位置以适应模型（仅在初始加载时）
+        // Adjust camera position to fit model (only on initial load)
         if (isLoading) {
             const maxDim = Math.max(size.x, size.y, size.z);
-            // 使用perspective相机进行计算
+            // Use perspective camera for calculation
             const perspCamera = cameraRef.current.perspective;
             const fov = perspCamera.fov * (Math.PI / 180);
             let cameraZ = Math.abs(maxDim / Math.sin(fov / 2));
             
-            // 设置初始相机位置
+            // Set initial camera position
             perspCamera.position.set(20, 0, 20);
             perspCamera.lookAt(center);
             controls.target.copy(center);
@@ -433,9 +439,9 @@ const BuildingModel = () => {
         
     }, [buildingData, isLoading]);
 
-    // 渲染 JSON 模型
+    // Render JSON model
     const renderJsonModel = (data, scene, wallMaterial, floorMaterial, windowMaterial, doorMaterial) => {
-        // 在渲染新模型前，清除场景中所有现有的标签
+        // Before rendering new model, clear all existing labels
         const labelsToRemove = [];
         scene.traverse((object) => {
             if (object instanceof THREE.Sprite) {
@@ -453,11 +459,11 @@ const BuildingModel = () => {
             }
         });
         
-        // 清空标签引用数组和轮廓线引用数组
+        // Clear label reference arrays and wireframe reference arrays
         roomLabelsRef.current = [];
         wireframeRef.current = [];
         
-        // 计数器
+        // Counter
         let wallCount = 0;
         let floorCount = 0;
         let windowCount = 0;
@@ -465,7 +471,7 @@ const BuildingModel = () => {
         let roomCount = 0;
         let totalArea = 0;
         
-        // 检查数据是否有效
+        // Check if data is valid
         if (!data || !data.building) {
             console.error('Invalid JSON data structure');
             return;
@@ -473,25 +479,25 @@ const BuildingModel = () => {
         
         const building = data.building;
         
-        // 渲染楼层
+        // Render floors
         if (building.floors && Array.isArray(building.floors)) {
             floorCount = building.floors.length;
             
-            // 找到最高层
+            // Find highest floor
             const highestFloor = building.floors.reduce((highest, floor) => {
                 return (floor.level || 0) > (highest.level || 0) ? floor : highest;
             }, building.floors[0]);
             
-            // 将屋顶属性移动到最高层
+            // Move roof properties to highest floor
             if (building.roof) {
                 highestFloor.roof = building.roof;
             }
             
             building.floors.forEach((floor, floorIndex) => {
-                const floorHeight = (floor.height || 3000) / 1000; // 默认楼层高度为3000毫米
-                const floorLevel = floor.level || floorIndex; // 默认楼层级别为索引
+                const floorHeight = (floor.height || 3000) / 1000; // Default floor height is 3000 mm
+                const floorLevel = floor.level || floorIndex; // Default floor level is index
                 
-                // 获取楼层材质
+                // Get floor material
                 const floorMaterialColor = floor.material?.color ? parseInt(floor.material.color.replace('#', '0x')) : 0x999999;
                 const floorMaterialProps = floor.material || {};
                 const customFloorMaterial = new THREE.MeshPhongMaterial({ 
@@ -499,29 +505,29 @@ const BuildingModel = () => {
                     side: THREE.DoubleSide
                 });
                 
-                // 渲染房间
+                // Render rooms
                 if (floor.rooms && Array.isArray(floor.rooms)) {
                     roomCount += floor.rooms.length;
                     
                     floor.rooms.forEach((room, roomIndex) => {
-                        // 渲染房间的地板（基于footprint）
+                        // Render room floor (based on footprint)
                         if (room.footprint && Array.isArray(room.footprint) && room.footprint.length >= 4) {
-                            // 计算房间的宽度和深度
+                            // Calculate room width and depth
                             const minX = Math.min(...room.footprint.map(point => point[0]));
                             const maxX = Math.max(...room.footprint.map(point => point[0]));
                             const minY = Math.min(...room.footprint.map(point => point[1]));
                             const maxY = Math.max(...room.footprint.map(point => point[1]));
                             
-                            const width = (maxX - minX) / 1000; // 转换为米
-                            const depth = (maxY - minY) / 1000; // 转换为米
-                            const floorThickness = (room.floor?.thickness || 200) / 1000; // 从 JSON 读取地板厚度，默认为 200 毫米
+                            const width = (maxX - minX) / 1000; // Convert to meters
+                            const depth = (maxY - minY) / 1000; // Convert to meters
+                            const floorThickness = (room.floor?.thickness || 200) / 1000; // Read floor thickness from JSON, default 200 mm
                             
-                            // 计算房间的中心点
-                            const centerX = (minX + maxX) / 2000; // 转换为米
-                            const centerY = floorLevel * floorHeight; // 楼层高度
-                            const centerZ = (minY + maxY) / 2000; // 转换为米
+                            // Calculate room center point
+                            const centerX = (minX + maxX) / 2000; // Convert to meters
+                            const centerY = floorLevel * floorHeight; // Floor height
+                            const centerZ = (minY + maxY) / 2000; // Convert to meters
                             
-                            // 获取房间地板材质
+                            // Get room floor material
                             const roomFloorMaterialColor = room.floor?.material?.color ? parseInt(room.floor.material.color.replace('#', '0x')) : floorMaterialColor;
                             const roomFloorMaterialProps = room.floor?.material || {};
                             const roomFloorMaterial = new THREE.MeshPhongMaterial({ 
@@ -530,54 +536,54 @@ const BuildingModel = () => {
                                 ...roomFloorMaterialProps
                             });
                             
-                            // 创建地板的网格
+                            // Create floor mesh
                             const floorGeometry = new THREE.BoxGeometry(width, floorThickness, depth);
                             const floorMesh = new THREE.Mesh(floorGeometry, roomFloorMaterial);
                             
-                            // 设置地板的位置
+                            // Set floor position
                             floorMesh.position.set(centerX, centerY, centerZ);
                             
-                            // 添加可选择标识
+                            // Add selectable identifier
                             floorMesh.userData.type = 'floor';
                             floorMesh.userData.selectable = true;
                             floorMesh.userData.name = `Floor_${room.name}`;
                             
                             floorMesh.receiveShadow = true;
                             
-                            // 添加边缘线条（轮廓）
+                            // Add edge lines (outline)
                             const floorEdges = new THREE.EdgesGeometry(floorGeometry, 30);
                             const floorLinesMaterial = new THREE.LineBasicMaterial({ 
                                 color: 0x000000,
                                 linewidth: 1
                             });
                             const floorWireframe = new THREE.LineSegments(floorEdges, floorLinesMaterial);
-                            // 根据当前组件状态设置可见性
+                            // Set visibility based on current component state
                             floorWireframe.visible = isOutlineVisible;
-                            // 添加标识，表明这是轮廓线
+                            // Add identifier, indicating this is an outline
                             floorWireframe.userData.isOutline = true;
                             floorWireframe.userData.parentType = 'floor';
-                            // 将轮廓线作为对象的子对象添加
+                            // Add outline as a child object
                             floorMesh.add(floorWireframe);
                             
-                            // 将轮廓线添加到引用数组中，用于控制可见性
+                            // Add outline to reference array for visibility control
                             wireframeRef.current.push(floorWireframe);
                             
                             scene.add(floorMesh);
                             
-                            // 计算房间面积（平方米）
+                            // Calculate room area (square meters)
                             totalArea += width * depth;
                             
-                            // 添加房间标签 - 使用房间名称
+                            // Add room label - use room name
                             const roomName = room.name || `Room ${roomIndex + 1}`;
                             addLabel(scene, roomName, new THREE.Vector3(centerX, centerY + floorHeight/2, centerZ));
                         }
                         
-                        // 渲染墙
+                        // Render walls
                         if (room.walls && Array.isArray(room.walls)) {
                             wallCount += room.walls.length;
                             
                             room.walls.forEach((wall, wallIndex) => {
-                                // 获取墙材质
+                                // Get wall material
                                 const wallMaterialColor = wall.material?.color ? parseInt(wall.material.color.replace('#', '0x')) : 0xcccccc;
                                 const wallMaterialProps = wall.material || {};
                                 const customWallMaterial = new THREE.MeshPhongMaterial({ 
@@ -587,15 +593,15 @@ const BuildingModel = () => {
                                     opacity: wallMaterialProps.opacity || 1
                                 });
                                 
-                                // 创建墙的几何体
-                                const wallHeight = floorHeight; // 墙高等于楼层高
-                                const wallThickness = (wall.thickness || 200) / 1000; // 转换为米，默认厚度 200 毫米
+                                // Create wall geometry
+                                const wallHeight = floorHeight; // Wall height equals floor height
+                                const wallThickness = (wall.thickness || 200) / 1000; // Convert to meters, default thickness 200 mm
                                 
-                                // 计算墙的长度和方向
-                                const startX = wall.start[0] / 1000; // 转换为米
-                                const startY = wall.start[1] / 1000; // 转换为米
-                                const endX = wall.end[0] / 1000; // 转换为米
-                                const endY = wall.end[1] / 1000; // 转换为米
+                                // Calculate wall length and direction
+                                const startX = wall.start[0] / 1000; // Convert to meters
+                                const startY = wall.start[1] / 1000; // Convert to meters
+                                const endX = wall.end[0] / 1000; // Convert to meters
+                                const endY = wall.end[1] / 1000; // Convert to meters
                                 
                                 const length = Math.sqrt(
                                     Math.pow(endX - startX, 2) + 
@@ -604,11 +610,11 @@ const BuildingModel = () => {
                                 
                                 const angle = Math.atan2(endY - startY, endX - startX);
                                 
-                                // 创建墙的网格
+                                // Create wall mesh
                                 const wallGeometry = new THREE.BoxGeometry(length, wallHeight, wallThickness);
                                 const wallMesh = new THREE.Mesh(wallGeometry, customWallMaterial);
                                 
-                                // 设置墙的位置和旋转
+                                // Set wall position and rotation
                                 wallMesh.position.set(
                                     (startX + endX) / 2,
                                     floorLevel * floorHeight + wallHeight / 2,
@@ -616,7 +622,7 @@ const BuildingModel = () => {
                                 );
                                 wallMesh.rotation.y = angle;
                                 
-                                // 添加可选择标识
+                                // Add selectable identifier
                                 wallMesh.userData.type = 'wall';
                                 wallMesh.userData.selectable = true;
                                 wallMesh.userData.name = `Wall_${wallIndex}_${room.name}`;
@@ -624,34 +630,34 @@ const BuildingModel = () => {
                                 wallMesh.castShadow = true;
                                 wallMesh.receiveShadow = true;
                                 
-                                // 添加边缘线条（轮廓）
+                                // Add edge lines (outline)
                                 const wallEdges = new THREE.EdgesGeometry(wallGeometry, 30);
                                 const wallLinesMaterial = new THREE.LineBasicMaterial({ 
                                     color: 0x000000,
                                     linewidth: 1
                                 });
                                 const wallWireframe = new THREE.LineSegments(wallEdges, wallLinesMaterial);
-                                // 根据当前组件状态设置可见性
+                                // Set visibility based on current component state
                                 wallWireframe.visible = isOutlineVisible;
-                                // 添加标识，表明这是轮廓线
+                                // Add identifier, indicating this is an outline
                                 wallWireframe.userData.isOutline = true;
                                 wallWireframe.userData.parentType = 'wall';
                                 wallMesh.add(wallWireframe);
                                 
-                                // 将轮廓线添加到引用数组中，用于控制可见性
+                                // Add outline to reference array for visibility control
                                 wireframeRef.current.push(wallWireframe);
                                 
                                 scene.add(wallMesh);
                                 
-                                // 渲染窗户（如果墙上有窗户）
+                                // Render windows (if wall has windows)
                                 if (wall.window) {
                                     windowCount++;
                                     
-                                    const windowWidth = (wall.window.width || 1000) / 1000; // 转换为米，默认宽度 1000 毫米
-                                    const windowHeight = (wall.window.height || 1000) / 1000; // 转换为米，默认高度 1000 毫米
-                                    const windowDepth = (wall.window.depth || 100) / 1000; // 从 JSON 读取窗户的深度，默认为 100 毫米
+                                    const windowWidth = (wall.window.width || 1000) / 1000; // Convert to meters, default width 1000 mm
+                                    const windowHeight = (wall.window.height || 1000) / 1000; // Convert to meters, default height 1000 mm
+                                    const windowDepth = (wall.window.depth || 100) / 1000; // Read window depth from JSON, default 100 mm
                                     
-                                    // 获取窗户材质
+                                    // Get window material
                                     const windowMaterialColor = wall.window.material?.color ? parseInt(wall.window.material.color.replace('#', '0x')) : 0x88ccff;
                                     const windowMaterialProps = wall.window.material || {};
                                     const customWindowMaterial = new THREE.MeshPhongMaterial({ 
@@ -661,24 +667,24 @@ const BuildingModel = () => {
                                         opacity: windowMaterialProps.opacity || 0.7
                                     });
                                     
-                                    // 计算窗户的位置（相对于墙的起点）
-                                    const windowPosition = Math.min((wall.window.position || 0) / 1000, length - windowWidth); // 确保窗户不会超出墙的长度
-                                    const windowVerticalPosition = (wall.window.verticalPosition || 0) / 1000; // 转换为米
+                                    // Calculate window position (relative to wall start)
+                                    const windowPosition = Math.min((wall.window.position || 0) / 1000, length - windowWidth); // Ensure window does not exceed wall length
+                                    const windowVerticalPosition = (wall.window.verticalPosition || 0) / 1000; // Convert to meters
                                     
-                                    // 创建窗户的网格
+                                    // Create window mesh
                                     const windowGeometry = new THREE.BoxGeometry(windowWidth, windowHeight, windowDepth);
                                     const windowMesh = new THREE.Mesh(windowGeometry, customWindowMaterial);
                                     
-                                    // 计算窗户在墙上的位置
+                                    // Calculate window position on wall
                                     const windowX = startX + (windowPosition / length) * (endX - startX);
                                     const windowY = floorLevel * floorHeight + windowVerticalPosition + windowHeight / 2;
                                     const windowZ = startY + (windowPosition / length) * (endY - startY);
                                     
-                                    // 设置窗户的位置和旋转
+                                    // Set window position and rotation
                                     windowMesh.position.set(windowX, windowY, windowZ);
                                     windowMesh.rotation.y = angle;
                                     
-                                    // 添加可选择标识
+                                    // Add selectable identifier
                                     windowMesh.userData.type = 'window';
                                     windowMesh.userData.selectable = true;
                                     windowMesh.userData.name = `Window_${wallIndex}_${room.name}`;
@@ -686,40 +692,40 @@ const BuildingModel = () => {
                                     windowMesh.castShadow = true;
                                     windowMesh.receiveShadow = true;
                                     
-                                    // 添加边缘线条（轮廓）
+                                    // Add edge lines (outline)
                                     const windowEdges = new THREE.EdgesGeometry(windowGeometry, 30);
                                     const windowLinesMaterial = new THREE.LineBasicMaterial({ 
                                         color: 0x000000,
                                         linewidth: 1
                                     });
                                     const windowWireframe = new THREE.LineSegments(windowEdges, windowLinesMaterial);
-                                    // 根据当前组件状态设置可见性
+                                    // Set visibility based on current component state
                                     windowWireframe.visible = isOutlineVisible;
-                                    // 添加标识，表明这是轮廓线
+                                    // Add identifier, indicating this is an outline
                                     windowWireframe.userData.isOutline = true;
                                     windowWireframe.userData.parentType = 'window';
                                     windowMesh.add(windowWireframe);
                                     
-                                    // 将轮廓线添加到引用数组中，用于控制可见性
+                                    // Add outline to reference array for visibility control
                                     wireframeRef.current.push(windowWireframe);
                                     
                                     scene.add(windowMesh);
                                     
-                                    // 添加调试信息
+                                    // Add debug information
                                     console.log(`Rendering window at position (${windowX}, ${windowY}, ${windowZ}) with dimensions ${windowWidth}x${windowHeight}x${windowDepth}`);
                                 }
                                 
-                                // 渲染其他窗户（如 window2, window3 等）
+                                // Render other windows (like window2, window3, etc.)
                                 Object.keys(wall).forEach(key => {
                                     if (key.startsWith('window') && key !== 'window') {
                                         windowCount++;
                                         const windowData = wall[key];
                                         
-                                        const windowWidth = (windowData.width || 1000) / 1000; // 转换为米，默认宽度 1000 毫米
-                                        const windowHeight = (windowData.height || 1000) / 1000; // 转换为米，默认高度 1000 毫米
-                                        const windowDepth = (windowData.depth || 100) / 1000; // 从 JSON 读取窗户的深度，默认为 100 毫米
+                                        const windowWidth = (windowData.width || 1000) / 1000; // Convert to meters, default width 1000 mm
+                                        const windowHeight = (windowData.height || 1000) / 1000; // Convert to meters, default width 1000 mm
+                                        const windowDepth = (windowData.depth || 100) / 1000; // Read window depth from JSON, default 100 mm
                                         
-                                        // 获取窗户材质
+                                        // Get window material
                                         const windowMaterialColor = windowData.material?.color ? parseInt(windowData.material.color.replace('#', '0x')) : 0x88ccff;
                                         const windowMaterialProps = windowData.material || {};
                                         const customWindowMaterial = new THREE.MeshPhongMaterial({ 
@@ -729,24 +735,24 @@ const BuildingModel = () => {
                                             opacity: windowMaterialProps.opacity || 0.7
                                         });
                                         
-                                        // 计算窗户的位置（相对于墙的起点）
-                                        const windowPosition = Math.min((windowData.position || 0) / 1000, length - windowWidth); // 确保窗户不会超出墙的长度
-                                        const windowVerticalPosition = (windowData.verticalPosition || 0) / 1000; // 转换为米
+                                        // Calculate window position (relative to wall start)
+                                        const windowPosition = Math.min((windowData.position || 0) / 1000, length - windowWidth); // Ensure window does not exceed wall length
+                                        const windowVerticalPosition = (windowData.verticalPosition || 0) / 1000; // Convert to meters
                                         
-                                        // 创建窗户的网格
+                                        // Create window mesh
                                         const windowGeometry = new THREE.BoxGeometry(windowWidth, windowHeight, windowDepth);
                                         const windowMesh = new THREE.Mesh(windowGeometry, customWindowMaterial);
                                         
-                                        // 计算窗户在墙上的位置
+                                        // Calculate window position on wall
                                         const windowX = startX + (windowPosition / length) * (endX - startX);
                                         const windowY = floorLevel * floorHeight + windowVerticalPosition + windowHeight / 2;
                                         const windowZ = startY + (windowPosition / length) * (endY - startY);
                                         
-                                        // 设置窗户的位置和旋转
+                                        // Set window position and rotation
                                         windowMesh.position.set(windowX, windowY, windowZ);
                                         windowMesh.rotation.y = angle;
                                         
-                                        // 添加可选择标识
+                                        // Add selectable identifier
                                         windowMesh.userData.type = 'window';
                                         windowMesh.userData.selectable = true;
                                         windowMesh.userData.name = `Window_${wallIndex}_${room.name}`;
@@ -754,39 +760,39 @@ const BuildingModel = () => {
                                         windowMesh.castShadow = true;
                                         windowMesh.receiveShadow = true;
                                         
-                                        // 添加边缘线条（轮廓）
+                                        // Add edge lines (outline)
                                         const windowEdges = new THREE.EdgesGeometry(windowGeometry, 30);
                                         const windowLinesMaterial = new THREE.LineBasicMaterial({ 
                                             color: 0x000000,
                                             linewidth: 1
                                         });
                                         const windowWireframe = new THREE.LineSegments(windowEdges, windowLinesMaterial);
-                                        // 根据当前组件状态设置可见性
+                                        // Set visibility based on current component state
                                         windowWireframe.visible = isOutlineVisible;
-                                        // 添加标识，表明这是轮廓线
+                                        // Add identifier, indicating this is an outline
                                         windowWireframe.userData.isOutline = true;
                                         windowWireframe.userData.parentType = 'window';
                                         windowMesh.add(windowWireframe);
                                         
-                                        // 将轮廓线添加到引用数组中，用于控制可见性
+                                        // Add outline to reference array for visibility control
                                         wireframeRef.current.push(windowWireframe);
                                         
                                         scene.add(windowMesh);
                                         
-                                        // 添加调试信息
+                                        // Add debug information
                                         console.log(`Rendering ${key} at position (${windowX}, ${windowY}, ${windowZ}) with dimensions ${windowWidth}x${windowHeight}x${windowDepth}`);
                                     }
                                 });
                                 
-                                // 渲染门（如果墙上有门）
+                                // Render door (if wall has door)
                                 if (wall.door) {
                                     doorCount++;
                                     
-                                    const doorWidth = (wall.door.width || 1000) / 1000; // 转换为米，默认宽度 1000 毫米
-                                    const doorHeight = (wall.door.height || 2000) / 1000; // 转换为米，默认高度 2000 毫米
-                                    const doorDepth = (wall.door.depth || 100) / 1000; // 从 JSON 读取门的深度，默认为 100 毫米
+                                    const doorWidth = (wall.door.width || 1000) / 1000; // Convert to meters, default width 1000 mm
+                                    const doorHeight = (wall.door.height || 2000) / 1000; // Convert to meters, default height 2000 mm
+                                    const doorDepth = (wall.door.depth || 100) / 1000; // Read door depth from JSON, default 100 mm
                                     
-                                    // 获取门材质
+                                    // Get door material
                                     const doorMaterialColor = wall.door.material?.color ? parseInt(wall.door.material.color.replace('#', '0x')) : 0x8b4513;
                                     const doorMaterialProps = wall.door.material || {};
                                     const customDoorMaterial = new THREE.MeshPhongMaterial({ 
@@ -796,23 +802,23 @@ const BuildingModel = () => {
                                         opacity: doorMaterialProps.opacity || 0.75
                                     });
                                     
-                                    // 计算门的位置（相对于墙的起点）
-                                    const doorPosition = (wall.door.position || 0) / 1000; // 转换为米
+                                    // Calculate door position (relative to wall start)
+                                    const doorPosition = (wall.door.position || 0) / 1000; // Convert to meters
                                     
-                                    // 创建门的网格
+                                    // Create door mesh
                                     const doorGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, doorDepth);
                                     const doorMesh = new THREE.Mesh(doorGeometry, customDoorMaterial);
                                     
-                                    // 计算门在墙上的位置
+                                    // Calculate door position on wall
                                     const doorX = startX + (doorPosition / length) * (endX - startX);
                                     const doorY = floorLevel * floorHeight + doorHeight / 2;
                                     const doorZ = startY + (doorPosition / length) * (endY - startY);
                                     
-                                    // 设置门的位置和旋转
+                                    // Set door position and rotation
                                     doorMesh.position.set(doorX, doorY, doorZ);
                                     doorMesh.rotation.y = angle;
                                     
-                                    // 添加可选择标识
+                                    // Add selectable identifier
                                     doorMesh.userData.type = 'door';
                                     doorMesh.userData.selectable = true;
                                     doorMesh.userData.name = `Door_${wallIndex}_${room.name}`;
@@ -820,21 +826,21 @@ const BuildingModel = () => {
                                     doorMesh.castShadow = true;
                                     doorMesh.receiveShadow = true;
                                     
-                                    // 添加边缘线条（轮廓）
+                                    // Add edge lines (outline)
                                     const doorEdges = new THREE.EdgesGeometry(doorGeometry, 30);
                                     const doorLinesMaterial = new THREE.LineBasicMaterial({ 
                                         color: 0x000000,
                                         linewidth: 1
                                     });
                                     const doorWireframe = new THREE.LineSegments(doorEdges, doorLinesMaterial);
-                                    // 根据当前组件状态设置可见性
+                                    // Set visibility based on current component state
                                     doorWireframe.visible = isOutlineVisible;
-                                    // 添加标识，表明这是轮廓线
+                                    // Add identifier, indicating this is an outline
                                     doorWireframe.userData.isOutline = true;
                                     doorWireframe.userData.parentType = 'door';
                                     doorMesh.add(doorWireframe);
                                     
-                                    // 将轮廓线添加到引用数组中，用于控制可见性
+                                    // Add outline to reference array for visibility control
                                     wireframeRef.current.push(doorWireframe);
                                     
                                     scene.add(doorMesh);
@@ -843,12 +849,12 @@ const BuildingModel = () => {
                         }
                     });
 
-                    // 渲染楼层屋顶（如果楼层有屋顶）
+                    // Render floor roof (if floor has roof)
                     if (floor.roof) {
                         const roof = floor.roof;
-                        const roofType = roof.type || 'gabled'; // 屋顶类型
+                        const roofType = roof.type || 'gabled'; // Roof type
                         
-                        // 计算整个楼层的边界
+                        // Calculate the boundary of the entire floor
                         const floorFootprint = floor.rooms.reduce((acc, room) => {
                             if (room.footprint && Array.isArray(room.footprint)) {
                                 acc.push(...room.footprint);
@@ -862,11 +868,11 @@ const BuildingModel = () => {
                             const minY = Math.min(...floorFootprint.map(point => point[1]));
                             const maxY = Math.max(...floorFootprint.map(point => point[1]));
                             
-                            const centerX = (minX + maxX) / 2000; // 转换为米
-                            const centerY = floorLevel * floorHeight; // 楼层高度
-                            const centerZ = (minY + maxY) / 2000; // 转换为米
+                            const centerX = (minX + maxX) / 2000; // Convert to meters
+                            const centerY = floorLevel * floorHeight; // Floor height
+                            const centerZ = (minY + maxY) / 2000; // Convert to meters
                             
-                            // 根据屋顶类型选择不同的渲染组件
+                            // Select different rendering components based on roof type
                             switch (roofType) {
                                 case 'gabled':
                                     renderGabledRoof(scene, floor, floor, centerX, centerY, centerZ, floorHeight);
@@ -878,7 +884,7 @@ const BuildingModel = () => {
                                     renderPitchedRoof(scene, floor, floor, centerX, centerY, centerZ, floorHeight);
                                     break;
                                 default:
-                                    // 默认使用山形屋顶
+                                    // Default to gabled roof
                                     renderGabledRoof(scene, floor, floor, centerX, centerY, centerZ, floorHeight);
                             }
                         }
@@ -887,7 +893,7 @@ const BuildingModel = () => {
             });
         }
         
-        // 更新统计数据
+        // Update statistics
         setStats({
             totalArea: Math.round(totalArea),
             totalFloors: floorCount,
@@ -898,23 +904,23 @@ const BuildingModel = () => {
         });
     };
     
-    // 渲染山形屋顶组件
+    // Render gabled roof component
     const renderGabledRoof = (scene, room, floor, centerX, centerY, centerZ, floorHeight) => {
-        // 从楼层获取屋顶属性
+        // Get roof property from floor
         const roof = floor.roof;
         
-        // 检查屋顶对象是否存在，其他属性使用默认值
+        // Check if roof object exists, use default values for other properties
         if (!roof) {
             console.error('Missing roof object in JSON data');
             return;
         }
         
-        // 使用默认值如果属性不存在
-        const roofHeight = (roof.height || 1000) / 1000; // 默认高度 1000 毫米
-        const roofOverhang = (roof.overhang || 300) / 1000; // 默认悬挑 300 毫米
-        const roofPitch = roof.pitch || 30; // 默认坡度 30 度
+        // Use default values if properties are missing
+        const roofHeight = (roof.height || 1000) / 1000; // Default height 1000 mm
+        const roofOverhang = (roof.overhang || 300) / 1000; // Default overhang 300 mm
+        const roofPitch = roof.pitch || 30; // Default pitch 30 degrees
         
-        // 获取屋顶材质
+        // Get roof material
         const roofMaterialColor = roof.material?.color ? parseInt(roof.material.color.replace('#', '0x')) : 0x8b4513;
         const roofMaterialProps = roof.material || {};
         const roofMaterial = new THREE.MeshPhongMaterial({ 
@@ -925,14 +931,14 @@ const BuildingModel = () => {
             opacity: roofMaterialProps.opacity || 0.75
         });
         
-        // 使用房间的 footprint 计算屋顶尺寸
-        // 检查 room 是否是一个房间对象（有 footprint 属性）或者是楼层对象
+        // Use room's footprint to calculate roof size
+        // Check if room is a room object (has footprint property) or floor object
         let footprint;
         if (room.footprint && Array.isArray(room.footprint)) {
-            // 如果 room 是房间对象，直接使用其 footprint
+            // If room is a room object, use its footprint directly
             footprint = room.footprint;
         } else if (room.rooms && Array.isArray(room.rooms)) {
-            // 如果 room 是楼层对象，收集所有房间的 footprint 点
+            // If room is a floor object, collect all room's footprint points
             footprint = room.rooms.reduce((acc, r) => {
                 if (r.footprint && Array.isArray(r.footprint)) {
                     acc.push(...r.footprint);
@@ -949,35 +955,35 @@ const BuildingModel = () => {
         const minY = Math.min(...footprint.map(point => point[1]));
         const maxY = Math.max(...footprint.map(point => point[1]));
         
-        const width = (maxX - minX) / 1000; // 转换为米
-        const depth = (maxY - minY) / 1000; // 转换为米
+        const width = (maxX - minX) / 1000; // Convert to meters
+        const depth = (maxY - minY) / 1000; // Convert to meters
         
-        // 计算屋顶的宽度和深度（包括悬挑）
+        // Calculate roof width and depth (including overhang)
         const roofWidth = width + (2 * roofOverhang);
         const roofDepth = depth + (2 * roofOverhang);
         
-        // 创建山形屋顶 - 使用两个四边形面
-        // 根据屋顶坡度计算屋顶高度
+        // Create gabled roof - using two quadrilateral faces
+        // Calculate roof height based on roof pitch
         const pitchRadians = (roofPitch * Math.PI) / 180;
-        // 使用屋顶坡度计算屋顶高度，屋顶坡度越大，高度越高
+        // Use roof pitch to calculate roof height, the steeper the pitch, the higher the height
         const roofHeightAtCenter = roofHeight * Math.tan(pitchRadians) + roofHeight;
         
-        // 前四边形
+        // Front quadrilateral
         const frontGeometry = new THREE.BufferGeometry();
         const frontVertices = new Float32Array([
-            -roofWidth/2, 0, -roofDepth/2,           // 左下
-            roofWidth/2, 0, -roofDepth/2,            // 右下
-            roofWidth/2, 0, roofDepth/2,             // 右上
-            -roofWidth/2, 0, roofDepth/2,            // 左上
-            0, roofHeightAtCenter, 0                 // 顶点
+            -roofWidth/2, 0, -roofDepth/2,           // Left bottom
+            roofWidth/2, 0, -roofDepth/2,            // Right bottom
+            roofWidth/2, 0, roofDepth/2,             // Right top
+            -roofWidth/2, 0, roofDepth/2,            // Left top
+            0, roofHeightAtCenter, 0                 // Center
         ]);
         
         // 定义面的索引（两个三角形组成一个四边形）
         const frontIndices = new Uint32Array([
-            0, 1, 4,  // 第一个三角形
-            1, 2, 4,  // 第二个三角形
-            2, 3, 4,  // 第三个三角形
-            3, 0, 4   // 第四个三角形
+            0, 1, 4,  // First triangle
+            1, 2, 4,  // Second triangle
+            2, 3, 4,  // Third triangle
+            3, 0, 4   // Fourth triangle
         ]);
         
         frontGeometry.setAttribute('position', new THREE.BufferAttribute(frontVertices, 3));
@@ -989,46 +995,46 @@ const BuildingModel = () => {
         frontRoof.castShadow = true;
         frontRoof.receiveShadow = true;
         
-        // 添加可选择标识
+        // Add selectable identifier
         frontRoof.userData.type = 'roof';
         frontRoof.userData.selectable = true;
         frontRoof.userData.name = `Roof_Gabled_Front`;
         
-        // 添加屋顶边缘线条（轮廓）
+        // Add roof edge lines (outline)
         const roofEdges = new THREE.EdgesGeometry(frontGeometry, 30);
         const roofLinesMaterial = new THREE.LineBasicMaterial({ 
             color: 0x000000,
             linewidth: 1
         });
         const roofWireframe = new THREE.LineSegments(roofEdges, roofLinesMaterial);
-        // 根据当前组件状态设置可见性
+        // Set visibility based on current component state
         roofWireframe.visible = isOutlineVisible;
-        // 添加标识，表明这是轮廓线
+        // Add identifier, indicating this is an outline
         roofWireframe.userData.isOutline = true;
         roofWireframe.userData.parentType = 'roof';
         frontRoof.add(roofWireframe);
         
-        // 将轮廓线添加到引用数组中，用于控制可见性
+        // Add outline to reference array for visibility control
         wireframeRef.current.push(roofWireframe);
         
         scene.add(frontRoof);
         
-        // 后四边形
+        // Back quadrilateral
         const backGeometry = new THREE.BufferGeometry();
         const backVertices = new Float32Array([
-            -roofWidth/2, 0, -roofDepth/2,           // 左下
-            roofWidth/2, 0, -roofDepth/2,            // 右下
-            roofWidth/2, 0, roofDepth/2,             // 右上
-            -roofWidth/2, 0, roofDepth/2,            // 左上
-            0, roofHeightAtCenter, 0                 // 顶点
+            -roofWidth/2, 0, -roofDepth/2,           // Left bottom
+            roofWidth/2, 0, -roofDepth/2,            // Right bottom
+            roofWidth/2, 0, roofDepth/2,             // Right top
+            -roofWidth/2, 0, roofDepth/2,            // Left top
+            0, roofHeightAtCenter, 0                 // Center
         ]);
         
-        // 定义面的索引（两个三角形组成一个四边形）
+        // Define face indices (two triangles make one quadrilateral)
         const backIndices = new Uint32Array([
-            0, 4, 1,  // 第一个三角形
-            1, 4, 2,  // 第二个三角形
-            2, 4, 3,  // 第三个三角形
-            3, 4, 0   // 第四个三角形
+            0, 4, 1,  // First triangle
+            1, 4, 2,  // Second triangle
+            2, 4, 3,  // Third triangle
+            3, 4, 0   // Fourth triangle
         ]);
         
         backGeometry.setAttribute('position', new THREE.BufferAttribute(backVertices, 3));
@@ -1040,47 +1046,47 @@ const BuildingModel = () => {
         backRoof.castShadow = true;
         backRoof.receiveShadow = true;
         
-        // 添加可选择标识
+        // Add selectable identifier
         backRoof.userData.type = 'roof';
         backRoof.userData.selectable = true;
         backRoof.userData.name = `Roof_Gabled_Back`;
         
-        // 添加后屋顶边缘线条（轮廓）
+        // Add back roof edge lines (outline)
         const backRoofEdges = new THREE.EdgesGeometry(backGeometry, 30);
         const backRoofLinesMaterial = new THREE.LineBasicMaterial({ 
             color: 0x000000,
             linewidth: 1
         });
         const backRoofWireframe = new THREE.LineSegments(backRoofEdges, backRoofLinesMaterial);
-        // 根据当前组件状态设置可见性
+        // Set visibility based on current component state
         backRoofWireframe.visible = isOutlineVisible;
-        // 添加标识，表明这是轮廓线
+        // Add identifier, indicating this is an outline
         backRoofWireframe.userData.isOutline = true;
         backRoofWireframe.userData.parentType = 'roof';
         backRoof.add(backRoofWireframe);
         
-        // 将轮廓线添加到引用数组中，用于控制可见性
+        // Add outline to reference array for visibility control
         wireframeRef.current.push(backRoofWireframe);
         
         scene.add(backRoof);
     };
     
-    // 渲染平屋顶组件
+    // Render flat roof component
     const renderFlatRoof = (scene, room, floor, centerX, centerY, centerZ, floorHeight) => {
-        // 从楼层获取屋顶属性
+        // Get roof property from floor
         const roof = floor.roof;
         
-        // 检查屋顶对象是否存在，其他属性使用默认值
+        // Check if roof object exists, use default values for other properties
         if (!roof) {
             console.error('Missing roof object in JSON data');
             return;
         }
         
-        // 使用默认值如果属性不存在
-        const roofThickness = (roof.thickness || 200) / 1000; // 默认厚度 200 毫米
-        const roofOverhang = (roof.overhang || 300) / 1000; // 默认悬挑 300 毫米
+        // Use default values if properties are missing
+        const roofThickness = (roof.thickness || 200) / 1000; // Default thickness 200 mm
+        const roofOverhang = (roof.overhang || 300) / 1000; // Default overhang 300 mm
         
-        // 获取屋顶材质
+        // Get roof material
         const roofMaterialColor = roof.material?.color ? parseInt(roof.material.color.replace('#', '0x')) : 0x8b4513;
         const roofMaterialProps = roof.material || {};
         const roofMaterial = new THREE.MeshPhongMaterial({ 
@@ -1091,14 +1097,14 @@ const BuildingModel = () => {
             opacity: roofMaterialProps.opacity || 0.75
         });
         
-        // 使用房间的 footprint 计算屋顶尺寸
-        // 检查 room 是否是一个房间对象（有 footprint 属性）或者是楼层对象
+        // Use room's footprint to calculate roof size
+        // Check if room is a room object (has footprint property) or floor object
         let footprint;
         if (room.footprint && Array.isArray(room.footprint)) {
-            // 如果 room 是房间对象，直接使用其 footprint
+            // If room is a room object, use its footprint directly
             footprint = room.footprint;
         } else if (room.rooms && Array.isArray(room.rooms)) {
-            // 如果 room 是楼层对象，收集所有房间的 footprint 点
+            // If room is a floor object, collect all room's footprint points
             footprint = room.rooms.reduce((acc, r) => {
                 if (r.footprint && Array.isArray(r.footprint)) {
                     acc.push(...r.footprint);
@@ -1115,65 +1121,65 @@ const BuildingModel = () => {
         const minY = Math.min(...footprint.map(point => point[1]));
         const maxY = Math.max(...footprint.map(point => point[1]));
         
-        const width = (maxX - minX) / 1000; // 转换为米
-        const depth = (maxY - minY) / 1000; // 转换为米
+        const width = (maxX - minX) / 1000; // Convert to meters
+        const depth = (maxY - minY) / 1000; // Convert to meters
         
-        // 计算屋顶的宽度和深度（包括悬挑）
+        // Calculate roof width and depth (including overhang)
         const roofWidth = width + (2 * roofOverhang);
         const roofDepth = depth + (2 * roofOverhang);
         
-        // 创建平屋顶
+        // Create flat roof
         const roofGeometry = new THREE.BoxGeometry(roofWidth, roofThickness, roofDepth);
         const roofMesh = new THREE.Mesh(roofGeometry, roofMaterial);
         
-        // 设置屋顶的位置
+        // Set roof position
         roofMesh.position.set(centerX, centerY + floorHeight + roofThickness/2, centerZ);
         
         roofMesh.castShadow = true;
         roofMesh.receiveShadow = true;
         
-        // 添加可选择标识
+        // Add selectable identifier
         roofMesh.userData.type = 'roof';
         roofMesh.userData.selectable = true;
         roofMesh.userData.name = `Roof_Flat`;
         
-        // 添加平屋顶边缘线条（轮廓）
+        // Add flat roof edge lines (outline)
         const flatRoofEdges = new THREE.EdgesGeometry(roofGeometry, 30);
         const flatRoofLinesMaterial = new THREE.LineBasicMaterial({ 
             color: 0x000000,
             linewidth: 1
         });
         const flatRoofWireframe = new THREE.LineSegments(flatRoofEdges, flatRoofLinesMaterial);
-        // 根据当前组件状态设置可见性
+        // Set visibility based on current component state
         flatRoofWireframe.visible = isOutlineVisible;
-        // 添加标识，表明这是轮廓线
+        // Add identifier, indicating this is an outline
         flatRoofWireframe.userData.isOutline = true;
         flatRoofWireframe.userData.parentType = 'roof';
         roofMesh.add(flatRoofWireframe);
         
-        // 将轮廓线添加到引用数组中，用于控制可见性
+        // Add outline to reference array for visibility control
         wireframeRef.current.push(flatRoofWireframe);
         
         scene.add(roofMesh);
     };
     
-    // 渲染斜屋顶组件
+    // Render pitched roof component
     const renderPitchedRoof = (scene, room, floor, centerX, centerY, centerZ, floorHeight) => {
-        // 从楼层获取屋顶属性
+        // Get roof property from floor
         const roof = floor.roof;
         
-        // 检查屋顶对象是否存在，其他属性使用默认值
+        // Check if roof object exists, use default values for other properties
         if (!roof) {
             console.error('Missing roof object in JSON data');
             return;
         }
         
-        // 使用默认值如果属性不存在
-        const roofHeight = (roof.height || 1000) / 1000; // 默认高度 1000 毫米
-        const roofOverhang = (roof.overhang || 300) / 1000; // 默认悬挑 300 毫米
-        const roofPitch = roof.pitch || 15; // 默认坡度 15 度
+        // Use default values if properties are missing
+        const roofHeight = (roof.height || 1000) / 1000; // Default height 1000 mm
+        const roofOverhang = (roof.overhang || 300) / 1000; // Default overhang 300 mm
+        const roofPitch = roof.pitch || 15; // Default pitch 15 degrees
         
-        // 获取屋顶材质
+        // Get roof material
         const roofMaterialColor = roof.material?.color ? parseInt(roof.material.color.replace('#', '0x')) : 0x8b4513;
         const roofMaterialProps = roof.material || {};
         const roofMaterial = new THREE.MeshPhongMaterial({ 
@@ -1184,14 +1190,14 @@ const BuildingModel = () => {
             opacity: roofMaterialProps.opacity || 0.75
         });
         
-        // 使用房间的 footprint 计算屋顶尺寸
-        // 检查 room 是否是一个房间对象（有 footprint 属性）或者是楼层对象
+        // Use room's footprint to calculate roof size
+        // Check if room is a room object (has footprint property) or floor object
         let footprint;
         if (room.footprint && Array.isArray(room.footprint)) {
-            // 如果 room 是房间对象，直接使用其 footprint
+            // If room is a room object, use its footprint directly
             footprint = room.footprint;
         } else if (room.rooms && Array.isArray(room.rooms)) {
-            // 如果 room 是楼层对象，收集所有房间的 footprint 点
+            // If room is a floor object, collect all room's footprint points
             footprint = room.rooms.reduce((acc, r) => {
                 if (r.footprint && Array.isArray(r.footprint)) {
                     acc.push(...r.footprint);
@@ -1208,18 +1214,18 @@ const BuildingModel = () => {
         const minY = Math.min(...footprint.map(point => point[1]));
         const maxY = Math.max(...footprint.map(point => point[1]));
         
-        const width = (maxX - minX) / 1000; // 转换为米
-        const depth = (maxY - minY) / 1000; // 转换为米
+        const width = (maxX - minX) / 1000; // Convert to meters
+        const depth = (maxY - minY) / 1000; // Convert to meters
         
-        // 计算屋顶的宽度和深度（包括悬挑）
+        // Calculate roof width and depth (including overhang)
         const roofWidth = width + (2 * roofOverhang);
         const roofDepth = depth + (2 * roofOverhang);
         
-        // 计算斜屋顶的高度
+        // Calculate pitched roof height
         const pitchRadians = (roofPitch * Math.PI) / 180;
         const roofHeightAtEnd = roofHeight * Math.tan(pitchRadians);
         
-        // 创建斜屋顶的几何体
+        // Create pitched roof geometry
         const roofShape = new THREE.Shape();
         roofShape.moveTo(-roofWidth/2, 0);
         roofShape.lineTo(roofWidth/2, 0);
@@ -1236,39 +1242,39 @@ const BuildingModel = () => {
         const roofGeometry = new THREE.ExtrudeGeometry(roofShape, extrudeSettings);
         const roofMesh = new THREE.Mesh(roofGeometry, roofMaterial);
         
-        // 设置屋顶的位置和旋转
+        // Set roof position and rotation
         roofMesh.position.set(centerX, centerY + floorHeight, centerZ - roofDepth/2);
-        roofMesh.rotation.x = -Math.PI / 2; // 旋转到水平面
+        roofMesh.rotation.x = -Math.PI / 2; // Rotate to horizontal plane
         
         roofMesh.castShadow = true;
         roofMesh.receiveShadow = true;
         
-        // 添加可选择标识
+        // Add selectable identifier
         roofMesh.userData.type = 'roof';
         roofMesh.userData.selectable = true;
         roofMesh.userData.name = `Roof_Pitched`;
         
-        // 添加斜屋顶边缘线条（轮廓）
+        // Add pitched roof edge lines (outline)
         const pitchedRoofEdges = new THREE.EdgesGeometry(roofGeometry, 30);
         const pitchedRoofLinesMaterial = new THREE.LineBasicMaterial({ 
             color: 0x000000,
             linewidth: 1
         });
         const pitchedRoofWireframe = new THREE.LineSegments(pitchedRoofEdges, pitchedRoofLinesMaterial);
-        // 根据当前组件状态设置可见性
+        // Set visibility based on current component state
         pitchedRoofWireframe.visible = isOutlineVisible;
-        // 添加标识，表明这是轮廓线
+        // Add identifier, indicating this is an outline
         pitchedRoofWireframe.userData.isOutline = true;
         pitchedRoofWireframe.userData.parentType = 'roof';
         roofMesh.add(pitchedRoofWireframe);
         
-        // 将轮廓线添加到引用数组中，用于控制可见性
+        // Add outline to reference array for visibility control
         wireframeRef.current.push(pitchedRoofWireframe);
         
         scene.add(roofMesh);
     };
     
-    // 修改 addLabel 函数，以便跟踪 room 标签
+    // Modify addLabel function to track room labels
     const addLabel = (scene, text, position) => {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
@@ -1302,15 +1308,15 @@ const BuildingModel = () => {
         label.position.y += 0; // 0: middle, 1: top
         label.scale.set(8, 2, 1); // Increased scale to make text more visible
         
-        // 默认隐藏所有标签
+        // Default hide all labels
         label.visible = false;
-        // 将所有标签添加到引用集合中
+        // Add all labels to reference collection
         roomLabelsRef.current.push(label);
         
         scene.add(label);
     };
 
-    // 将场景、相机、渲染器和控制器暴露给全局，以便 ClippingPlane 组件可以访问
+    // Expose scene, camera, renderer, and controls to global, so ClippingPlane component can access
     useEffect(() => {
         if (sceneRef.current && cameraRef.current && rendererRef.current && controlsRef.current) {
             window.scene = sceneRef.current;
@@ -1320,9 +1326,9 @@ const BuildingModel = () => {
         }
     }, []);
 
-    // 添加事件监听器，处理视角模式变更
+    // Add event listener to handle view mode change
     useEffect(() => {
-        // 处理视角模式变更
+        // Handle view mode change
         const handleViewModeChange = (event) => {
             if (!cameraRef.current) return;
             
@@ -1330,56 +1336,56 @@ const BuildingModel = () => {
             const position = event.detail.position;
             
             if (mode === 'isometric') {
-                // 切换到等角(isometric)视图
+                // Switch to isometric (isometric) view
                 const orthoCamera = cameraRef.current.orthographic;
                 
-                // 将控制器连接到正交相机
+                // Connect controller to orthographic camera
                 controlsRef.current.object = orthoCamera;
                 
-                // 更新活动相机
+                // Update active camera
                 cameraRef.current.active = orthoCamera;
                 
-                console.log('切换到等角视图');
+                console.log('Switch to isometric view');
             } else if (mode === 'perspective') {
-                // 切换到透视(perspective)视图
+                // Switch to perspective (perspective) view
                 const perspCamera = cameraRef.current.perspective;
                 
-                // 如果提供了位置，则移动相机到指定位置
+                // If position is provided, move camera to specified position
                 if (position) {
                     perspCamera.position.set(position[0], position[1], position[2]);
                     
-                    // 将相机朝向场景中心
+                    // Look at scene center
                     perspCamera.lookAt(0, 0, 0);
                     
-                    // 更新轨道控制器的目标点
+                    // Update orbit controller target point
                     controlsRef.current.target.set(0, 0, 0);
                     
-                    console.log(`相机位置已设置为 [${position.join(', ')}]`);
+                    console.log(`Camera position set to [${position.join(', ')}]`);
                 }
                 
-                // 将控制器连接到透视相机
+                // Connect controller to perspective camera
                 controlsRef.current.object = perspCamera;
                 
-                // 更新活动相机
+                // Update active camera
                 cameraRef.current.active = perspCamera;
                 
-                console.log('切换到透视视图');
+                console.log('Switch to perspective view');
             }
             
-            // 更新控制器
+            // Update controller
             controlsRef.current.update();
         };
         
-        // 添加事件监听
+        // Add event listener
         window.addEventListener('changeViewMode', handleViewModeChange);
         
-        // 清理函数
+        // Cleanup function
         return () => {
             window.removeEventListener('changeViewMode', handleViewModeChange);
         };
     }, []);
 
-    // 监听对象选择状态变化
+    // Listen for object selection status changes
     useEffect(() => {
         const handleObjectSelected = (e) => {
             const { selected, info } = e.detail;
@@ -1395,6 +1401,122 @@ const BuildingModel = () => {
             window.removeEventListener('objectSelected', handleObjectSelected);
         };
     }, []);
+
+    // Create geometry
+    const createGeometry = (type, position) => {
+        let geometry;
+        let material = new THREE.MeshPhongMaterial({ 
+            color: 0x808080,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        switch (type) {
+            case 'cube':
+                geometry = new THREE.BoxGeometry(2, 2, 2);
+                break;
+            case 'sphere':
+                geometry = new THREE.SphereGeometry(1, 32, 32);
+                break;
+            case 'pyramid':
+                geometry = new THREE.ConeGeometry(1, 2, 4);
+                break;
+            default:
+                return null;
+        }
+
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // Set position
+        if (position) {
+            mesh.position.copy(position);
+        } else {
+            // Default position in front of camera
+            const camera = cameraRef.current.active;
+            const direction = new THREE.Vector3();
+            camera.getWorldDirection(direction);
+            mesh.position.copy(camera.position).add(direction.multiplyScalar(5));
+        }
+
+        // Add outline
+        const edges = new THREE.EdgesGeometry(geometry);
+        const line = new THREE.LineSegments(
+            edges,
+            new THREE.LineBasicMaterial({ color: 0x000000 })
+        );
+        mesh.add(line);
+
+        // Add selectable identifier
+        mesh.userData.type = 'geometry';
+        mesh.userData.selectable = true;
+        mesh.userData.name = `${type.charAt(0).toUpperCase() + type.slice(1)}`;
+
+        // Enable shadow
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+
+        sceneRef.current.add(mesh);
+
+        // Notify object has been created
+        window.dispatchEvent(new CustomEvent('objectCreated', {
+            detail: {
+                object: mesh,
+                type: 'geometry',
+                name: mesh.userData.name
+            }
+        }));
+
+        return mesh;
+    };
+
+    // Handle geometry creation event
+    const handleCreateGeometry = (event) => {
+        const { type } = event.detail;
+        createGeometry(type);
+    };
+
+    // Handle drag and drop placement event
+    const handleDrop = (event) => {
+        event.preventDefault();
+        const geometryType = event.dataTransfer.getData('geometryType');
+        
+        // Ensure scene and camera exist
+        if (!sceneRef.current || !cameraRef.current) {
+            console.error('Scene or camera not initialized');
+            return;
+        }
+
+        // Calculate placement position
+        const mouse = new THREE.Vector2();
+        const rect = containerRef.current.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, cameraRef.current.active);
+
+        // Only detect non-label objects
+        const objectsToIntersect = sceneRef.current.children.filter(
+            obj => !(obj instanceof THREE.Sprite)
+        );
+
+        const intersects = raycaster.intersectObjects(objectsToIntersect);
+        if (intersects.length > 0) {
+            createGeometry(geometryType, intersects[0].point);
+        } else {
+            // If no intersection, create geometry in front of camera
+            const camera = cameraRef.current.active;
+            const direction = new THREE.Vector3();
+            camera.getWorldDirection(direction);
+            const position = camera.position.clone().add(direction.multiplyScalar(5));
+            createGeometry(geometryType, position);
+        }
+    };
+
+    // Handle drag and drop hover event
+    const handleDragOver = (event) => {
+        event.preventDefault();
+    };
 
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>

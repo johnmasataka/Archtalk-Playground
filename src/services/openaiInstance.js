@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { getOpenAIApiKey, setOpenAIApiKey } from './openaiConfig';
+import { getOpenAIApiKey, setOpenAIApiKey, getOpenAIOrganization } from './openaiConfig';
 
 // Create a class to manage the OpenAI instance
 class OpenAIManager {
@@ -10,18 +10,18 @@ class OpenAIManager {
 
   initialize() {
     const apiKey = getOpenAIApiKey();
+    const organization = getOpenAIOrganization();
     console.log('Initializing OpenAI instance with key:', apiKey.substring(0, 3) + '...');
     
-    // 配置OpenAI实例，支持项目级API密钥
+    // 配置OpenAI实例
     const config = {
       apiKey: apiKey,
       dangerouslyAllowBrowser: true
     };
     
-    // 如果是项目级API密钥（以sk-proj-开头），添加organization字段
-    if (apiKey.startsWith('sk-proj-')) {
-      console.log('使用项目级API密钥，添加organization配置');
-      config.organization = 'org-pbBvZQZpcXzEEfQtXlZnEb8Z'; // 使用通用组织ID
+    // 如果有组织ID，添加到配置中
+    if (organization) {
+      config.organization = organization;
     }
     
     this.instance = new OpenAI(config);
@@ -42,21 +42,19 @@ class OpenAIManager {
     // Update the stored API key
     setOpenAIApiKey(newKey);
     
-    // 配置OpenAI实例，支持项目级API密钥
+    // 配置OpenAI实例
     const config = {
       apiKey: newKey,
       dangerouslyAllowBrowser: true
     };
     
-    // 如果是项目级API密钥（以sk-proj-开头），添加organization字段
-    if (newKey.startsWith('sk-proj-')) {
-      console.log('使用项目级API密钥，添加organization配置');
-      config.organization = 'org-pbBvZQZpcXzEEfQtXlZnEb8Z'; // 使用通用组织ID
+    // 如果有组织ID，添加到配置中
+    const organization = getOpenAIOrganization();
+    if (organization) {
+      config.organization = organization;
     }
     
-    // Create a new instance with the updated key
     this.instance = new OpenAI(config);
-    
     return this.instance;
   }
 }
